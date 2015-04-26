@@ -1,0 +1,75 @@
+开发
+======================
+
+本栏目提供有关 Haiku 项目的各种资料，包括用户手册，开发指南，测试手册等等。我们在这里对所有的资料进行了分类。目前我们的资料主要来源于 Haiku 官方网站，也有一些资料来源于原 Be Inc. 的手册和文档。在此，我们会给出相关的文档的介绍信息。
+
+用户指南
+----------------------
+
+以下指南由Haiku官方提供和维护。
+
+* `Haiku 用户指南`_
+
+开发文档
+----------------------
+
+本栏目主要用于为开发者，和有志于为Haiku开发程序的中文爱好者提供相关的资料，帮助入门开发者很快的熟悉开发的相关事项，为资深的开发者提供更进一步的资料提高程序的质量。下面的资料大部分来源于Haiku官方网站，由中文社区完成翻译之后进行提供。我们希望它们可以对您有所帮助。如果您希望获取更多的信息，或者遇到难以解决的问题，您可以到官网的论坛和开发邮件列表，或者中文论坛的应用开发讨论区进行求助。
+
+
+.. toctree::
+   :maxdepth: 1
+
+   开发入门
+
+   Haiku编程学习
+
+   Haiku编程教程
+
+   Haiku指南
+
+   Haiku源码规范
+
+   开发常见问题（FAQ）
+
+   Haiku 图标指南
+
+* `Haiku 手册`_ (每日构建，进行中)
+* `Haiku 用户界面规范`_ (进行中)
+
+* 遗留资料：`BeBook`_ | `Be 新闻信札`_ | `The Art of BeOS Programming`_ (日语版)
+* 更多开发者共享文档：`分类列表`_ | `全部列表`_
+
+在线资源
+----------------------
+
+* `项目管理和问题跟踪系统`_ (Trac)
+* `任务概览`_ |`完整问题和任务列表`_
+* `里程碑和状态`_
+* `源码库浏览`_
+* `搜索源码`_ (OpenGrok 交叉引用)
+
+开发工具
+'''''''''''''''''''''''
+
+All development tools required to use Haiku as your development environment are now included. Simply download the latest official release or the latest and unstable nightly images, and you should have everything you need.
+
+其他系统交叉编译
+'''''''''''''''''''''''
+
+While we encourage using Haiku to build Haiku and/or software for Haiku, it is also possible to cross-compile from other operating systems. If you choose to cross-compile from another system, the Pre-Requisite Software for Compiling Haiku guide may be a good reference for each supported development environment.
+
+.. _Haiku 用户指南: http://www.haiku-os.org/docs/userguide/zh_CN/contents.html
+.. _Haiku 手册: http://api.haiku-os.org/
+.. _Haiku 用户界面规范: http://api.haiku-os.org/HIG/
+.. _BeBook: https://www.haiku-os.org/legacy-docs/bebook/
+.. _Be 新闻信札: https://www.haiku-os.org/legacy-docs/benewsletter/
+.. _The Art of BeOS Programming: https://www.haiku-os.org/legacy-docs/ArtOfBeOSProgramming/
+.. _分类列表: https://www.haiku-os.org/documents/dev
+.. _全部列表: https://www.haiku-os.org/articles
+.. _项目管理和问题跟踪系统: http://dev.haiku-os.org/wiki
+.. _任务概览: http://dev.haiku-os.org/query?status=new&status=assigned&status=reopened&group=component&type=enhancement&order=priority
+.. _完整问题和任务列表: http://dev.haiku-os.org/query?status=new&status=assigned&status=reopened&group=milestone&order=priority
+.. _里程碑和状态: http://dev.haiku-os.org/roadmap
+.. _源码库浏览: http://cgit.haiku-os.org/
+.. _搜索源码: http://grok.bikemonkey.org/source/
+
