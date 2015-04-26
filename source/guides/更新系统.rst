@@ -1,0 +1,56 @@
+更新系统
+======================
+
+随着包管理系统的引入，现在可以使用 pkgman 命令实现整个系统的更新。更新的进程是前向的，需要网络的连接，以及一次系统重启。pkgman 将会获取最新的更新，并将其应用到您的系统。
+
+仓库
+--------------------------
+
+下面是官方的软件包仓库列表。
+
+基本系统构建仓库
+''''''''''''''''''''''''''''
+
+下面是每日的系统构建，包涵基本操作系统的包
+
+* x86 (gcc2): http://download.haiku-os.org/haiku-repositories/master/x86_gcc2/current/
+* x86 (gcc4): http://download.haiku-os.org/haiku-repositories/master/x86/current/
+* x86_64 (gcc4): http://download.haiku-os.org/haiku-repositories/master/x86_64/current/
+* ARM (gcc4): http://download.haiku-os.org/haiku-repositories/master/arm/current/
+* PowerPC (gcc4): http://download.haiku-os.org/haiku-repositories/master/ppc/current/
+
+Haikuports 包仓库
+''''''''''''''''''''''''''''
+
+下面是最新编译的 haikuports 包，提供移植或者原声的软件
+
+* x86 (gcc2): http://packages.haiku-os.org/haikuports/master/repo/x86_gcc2/current/
+* x86 (gcc4): http://packages.haiku-os.org/haikuports/master/repo/x86/current/
+* x86_64 (gcc4): http://packages.haiku-os.org/haikuports/master/repo/x86_64/current/
+* ARM (gcc4): http://packages.haiku-os.org/haikuports/master/repo/arm/current/
+* PowerPC (gcc4): http://packages.haiku-os.org/haikuports/master/repo/ppc/current/
+
+更新过程
+--------------------------
+
+为了更新到上面这些仓库中的软件包，需要执行以下的步骤。
+
+* 添加当前架构的更新仓库，根据上述的列表，从中选择相应的链接地址。在承担一定的风险同时，用户可能希望添加基本的仓库和 haikuports 仓库。
+
+  .. code-block:: sh
+
+     pkgman add-repo <URL>
+
+* 更新到最新的包
+
+  .. code-block:: sh
+   
+     pkgman update
+
+
+* 重启系统完成更新
+
+  .. code-block:: sh
+
+     shutdown -r
+

@@ -1,0 +1,81 @@
+网络服务
+======================
+
+基本的 Haiku 系统包含了一些标准系统网络工具，如 SSH 和 Telnet。
+
+设置用户密码
+--------------------------
+
+第一步需要设置您的用户账户密码，以便于在进入真实的世界之前为它加上重甲。
+
+.. code-block:: sh
+
+   ~>passwd
+   new password:
+   repeat new password
+
+备注：为了远程访问您的 Haiku 系统，您必须知道它的网络地址。Haiku 默认主机名称为 shredder。如果 shredder 不行的话，您可以启动 Network 首选项找出系统的网络地址。
+
+ftpd - FTP 服务
+--------------------------
+
+Haiku 可以很容易设置以监听外来的 FTP 连接，并提供文件服务。
+
+开机启动 ftpd
+''''''''''''''''''''''''''''
+
+如果您从 */boot/common/settings/network/services* 配置中删除 ftp 服务块前的注释（#），Haiku在启动时将会自动启动 FTP 服务。
+
+手动开启 ftpd
+''''''''''''''''''''''''''''
+
+您可以直接运行 ftpd，手动启动 FTP 服务。
+
+sshd - 安全终端服务
+''''''''''''''''''''''''''''
+
+SSH 是一种网络协议，其允许两个网络设备之间使用安全通道交换数据。其最常用于远程 shell 访问。
+
+在 Haiku 中启动 SSH 服务非常简单：
+
+1. 创建 SSH 权限分离目录：
+
+   .. code-block:: sh
+   
+      mkdir -p /var/empty
+	
+2. 启动 SSH 后台服务：
+
+   .. code-block:: sh
+
+      /boot/common/bin/sshd
+	
+启动 sshd 之后，我们需要确认后台服务是否确实运行：
+
+.. code-block:: sh
+ 
+   ps |grep sshd | grep -v grep
+   /boot/common/bin/sshd 	237	1	0	0
+
+在上述示例中，sshd 的进程为 237，并且正在运行。现在我们可以使用用户名 “user” 和在本文最初设定的密码连接到 Haiku：
+
+.. code-block:: sh
+
+   alex@leenux-desktop:~$ ssh user@192.168.1.200
+   user@192.168.1.200's password: 
+
+   Welcome to the Haiku shell.
+
+   ~> uname -a
+
+   Haiku shredder 1 r36769 May  8 2010 20:58:31 BePC Haiku
+
+   ~> gcc -v
+   using priority 5
+
+   Reading specs from /boot/develop/abi/x86/gcc2/tools/gcc-2.95.3-haiku-100420/lib/gcc-lib/i586-pc-haiku/2.95.3-haiku-100420/specs
+
+   gcc version 2.95.3-haiku-100420
+   ~> 
+
+

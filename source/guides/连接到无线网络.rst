@@ -1,0 +1,175 @@
+连接到无线网络
+======================
+
+Haiku 在不断提升对无线网络连接（Wi-Fi，802.11）的支持。目前仅提供对未加密和 WPE 加密无线网络的支持。
+
+要求条件
+--------------------------
+
+* Haiku 版本要求: Haiku R1 Alpha 2 (R1A2) 及以后版本
+* Haiku 建议版本: Haiku nightly r39852 及以后版本
+* 条件: 支持 802.11 的无线网卡
+
+固件安装
+--------------------------
+
+Some wireless network cards require binary firmware modules to properly operate. Haiku cannot include some of these proprietary firmware files due to licensing issues. Haiku does however include an easy script which will retrieve and install all of the needed proprietary bits for you. Generally if you are planning to use wireless networking it is a good idea to run this to ensure your system has all of the available proprietary bits.
+
+If you are unable to access the Internet due to the lack of wireless firmware binaries, please check out the offline method of running the firmware installer.
+
+#. Open the Haiku Terminal
+#. Type *install-wifi-firmwares.sh* Enter
+#. Review the licenses and accept them to install all of the available firmware files
+
+连接网络
+--------------------------
+
+Haiku has preliminary support for accessing wireless networks via WEP encryption keys. WEP is the earliest and most common encryption method available (although not the most secure).
+
+These instructions are for the current nightly images post r39852. If you are using a release prior to r39852 (including Haiku R1A1 or Haiku R1A2), you will utilize the setwep application within the Haiku Terminal which works similarly.
+
+If you are unsure on what to enter for your wifi_device_path, you can look at the Network preferences applet, or execute `ifconfig -a` in the Haiku Terminal.
+
+#. Open the Haiku Terminal
+#. Type ifconfig **[wifi_device_path] [list|join|leave]** (key) Enter
+
+Below are a few examples of connecting to a wireless network named wifitopia. For these examples we are assuming your Wi-Fi network card is /dev/net/iprowifi3945/0.
+
+列出无线网络:
+''''''''''''''''''''''''''''
+
+.. code-block:: sh
+
+   ifconfig /dev/net/iprowifi3945/0 list
+
+连接未加密网络:
+''''''''''''''''''''''''''''
+
+.. code-block:: sh
+
+   ifconfig /dev/net/iprowifi3945/0 join wifitopia
+
+连接 WEP 加密网络: (ascii 密码)
+''''''''''''''''''''''''''''''''''''''''
+
+.. code-block:: sh
+
+   ifconfig /dev/net/iprowifi3945/0 join wifitopia mypassword
+
+连接 WEP 加密网络: (64位十六进制密码)
+''''''''''''''''''''''''''''''''''''''''''''
+
+.. code-block:: sh
+
+   ifconfig /dev/net/iprowifi3945/0 join wifitopia 0x4010FABEEF
+
+断开网络:
+''''''''''''''''''''''''''''''''''''''''''''
+
+.. code-block:: sh
+   
+   ifconfig /dev/net/iprowifi3945/0 leave wifitopia
+
+自动连接网络
+--------------------------
+
+To make your system connect to a given SSID at each boot automatically, you can specify your wireless networks and passwords in */boot/common/settings/network/wireless_networks* with the following format:
+
+.. code-block:: sh
+
+   network wifitopia {
+       password mypassword
+   }
+
+备注
+--------------------------
+
+离线下载固件文件
+''''''''''''''''''''''''''''''''''''''''''''
+
+If you do not have Internet access, you can install your wireless hardware's firmware by manually copying the remote files listed below onto your system, then running `install-wifi-firmwares.sh`.
+
+* copy these to system/data/firmware/broadcom43xx/b43-fwcutter/
+    * http://bu3sch.de/b43/fwcutter/b43-fwcutter-012.tar.bz2
+    * http://cgit.haiku-os.org/haiku/plain/src/system/libroot/posix/glibc/stri...
+* copy these to system/data/firmware/broadcom43xx/b43-fwcutter/bits
+    * http://cgit.haiku-os.org/haiku/plain/src/system/libroot/posix/glibc/incl...
+* copy these to system/data/firmware/broadcom43xx/
+    * http://downloads.openwrt.org/sources/wl_apsta-3.130.20.0.o
+* copy these to system/data/firmware/marvell88w8335/
+    * http://www.nazgul.ch/malo/malo-firmware-1.4.tgz
+
+If you cannot obtain the binary firmware files via the install-wifi-firmwares.sh script (for example due to lack of Internet connection within Haiku), you can also download this shell script, and run it from any other OS that has wget and zip. The script will download the needed files and will create a zip file that is to be extracted to Haiku's /boot. Once unpacked, execute the install-wifi-firmwares.sh script to install the firmware files.
+
+WEP encryption keys
+''''''''''''''''''''''''''''''''''''''''''''
+
+WEP encryption keys are password strings used to identify one's self to a wireless network and to encrypt data sent to the wireless network. A WEP password key can be a fixed length string or hexadecimal number.
+
+* 64-bit WEP uses a 40-bit key, which means 5 text characters or 10 hex digits
+* 128-bit WEP uses a 104-bit key, which means 13 text characters or 26 hex digits
+* hexadecimal digits are characters 0-9 and A through F (prefixed with "0x" in setwep)
+
+Wi-Fi 硬件支持
+''''''''''''''''''''''''''''''''''''''''''''
+
+To support a large number of wireless cards with reduced legwork, the Haiku wireless network drivers are FreeBSD wireless drivers wrapped in code to translate them to the Haiku driver subsystem.
+
+未支持硬件
+''''''''''''''''''''''''''''''''''''''''''''
+
+The following Broadcom 43xx devices:
+
+* bcm4311: vendor 14e4, device 4311
+* bcm4312: vendor 14e4, device 4315
+
+As of R1A2, only PCI, PCI-X, PCI-Express, Mini PCI, and Mini PCI-Express devices are expected to work. PCMCIA, CardBus, ExpressCard, USB and ISA devices do not have the needed glue code to operate at this time.
+
+支持硬件
+''''''''''''''''''''''''''''''''''''''''''''
+
+All of FreeBSD 9.1 WLAN drivers should be working.
+
+* aironetwifi supporting at least
+    * Cisco Aironet 350 Series
+    * Aironet PCI4500
+    * Aironet PCI4800
+* atheroswifi supporting almost every Atheros chipset out there (Except for the AR9285)
+* broadcom43xx supporting
+    * Broadcom BCM4301
+    * Broadcom BCM4306
+    * Broadcom BCM4307
+    * Broadcom BCM4309
+    * Broadcom BCM4311
+    * Broadcom BCM4312
+    * Broadcom BCM4318
+
+* ipw2100 supporting Intel Pro Wireless 2100
+* iprowifi2200 supporting
+    * Intel Pro Wireless 2200BG
+    * Intel Pro Wireless 2225BG
+    * Intel Pro Wireless 2915ABG
+* iprowifi3945 supporting Intel Pro Wireless 3945
+* iprowifi4965 supporting Intel Pro Wireless 4965
+* marvell88w8335 supporting
+    * Marvell Libertas 88W8310
+    * Marvell Libertas 88W8335
+* marvell88w8363 supporting Marvell 88W8363
+* ralink2860 supporting Ralink RT2860
+* ralinkwifi supporting
+    * Ralink RT2560
+    * Ralink RT2561S
+    * Ralink RT2561
+    * Ralink RT2661
+* wavelanwifi supporting at least
+    * 3Com Airconnect
+    * GLPRISM2 WaveLAN
+    * Intersil Prism3
+    * Intersil Prism2.5
+    * Linksys WDT11
+    * Netgear MA301
+    * PRISM2STA WaveLAN
+    * Siemens SpeedStream
+    * SMC 2602W
+    * Us Robotics 2415
+    * Addtron AWA-100 PCI
