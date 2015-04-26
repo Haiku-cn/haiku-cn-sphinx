@@ -6,7 +6,7 @@
 欢迎访问 Haiku 中文文档
 ===================================================
 
-Contents:
+内容：
 
 .. toctree::
    :maxdepth: 2
@@ -17,10 +17,8 @@ Contents:
 
 
 
-Indices and tables
+搜索
 ==================
 
-* :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`
 

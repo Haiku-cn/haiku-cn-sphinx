@@ -31,7 +31,7 @@
 
    开发常见问题（FAQ）
 
-   Haiku 图标指南
+   develop/Haiku图标指南
 
 * `Haiku 手册`_ (每日构建，进行中)
 * `Haiku 用户界面规范`_ (进行中)
