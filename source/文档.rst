@@ -1,0 +1,50 @@
+文档
+======================
+
+下面是为用户和开发者所提供的所有可用文档。
+
+用户文档
+------------------------------
+
+* `Haiku 用户指南`_ （进行中）
+* `Haiku 欢迎页面`_ 
+
+开发者文档
+------------------------------
+
+* `Haiku Book`_ （每天构建，进行中）
+* `用户界面指南`_ （进行中）
+* `图标指南`_
+
+早期文档
+------------------------------
+
+BeBook 和 Be 信札
+''''''''''''''''''''''''''''''
+
+目前还有一些遗留的原BeOS系统发布的文档，对于那些希望熟悉 BeAPI 和 Haiku 编程的爱好者，它们是非常有用的参考资料。BeBook 和Be 新闻信札 都在 `ACCESS Co.`_ 的授权下进行发布，它也是目前所有 BeOS 知识产权的拥有者。
+
+* `BeBook`_
+* `Be 新闻信札`_
+
+其他
+''''''''''''''''''''''''''''''
+
+* `Practical File System Design with the Be File System`_ (编写者：`Dominic Giampaolo`_ )
+* `Programming the Be Operating System`_ (编写者：`Dan Parks Sydow`_ ，备注：文档与 BeOS R3/R4 API 相对应，是非常好的介绍资料，但是对于 Haiku 应用程序编写并不很适用)
+* `The Art of BeOS Programming`_ (编写者：Shin-ya Koga，日语)
+* `Writing Video Card Drivers In BeOS`_ (编写者：Rudolf Cornelissen)
+
+.. _Haiku 用户指南: http://www.haiku-os.org/docs/userguide/en/contents.html
+.. _Haiku 欢迎页面: http://www.haiku-os.org/docs/welcome/welcome_en.html
+.. _Haiku Book: http://api.haiku-os.org/
+.. _用户界面指南: http://api.haiku-os.org/HIG/
+.. _BeBook: http://www.haiku-os.org/legacy-docs/bebook/index.html
+.. _Be 新闻信札: http://www.haiku-os.org/legacy-docs/benewsletter/index.html
+.. _ACCESS Co.: http://www.access-company.com/
+.. _Practical File System Design with the Be File System: http://www.haiku-os.org/legacy-docs/practical-file-system-design.pdf
+.. _Dominic Giampaolo: http://www.nobius.org/~dbg/
+.. _Programming the Be Operating System: http://www.haiku-os.org/legacy-docs/programming_the_be_operating_system.pdf
+.. _Dan Parks Sydow: http://www.dansydow.com/
+.. _The Art of BeOS Programming: http://www.haiku-os.org/legacy-docs/ArtOfBeOSProgramming/
+.. _Writing Video Card Drivers In BeOS: http://www.haiku-os.org/legacy-docs/writing-video-card-drivers

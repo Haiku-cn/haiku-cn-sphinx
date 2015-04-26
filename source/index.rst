@@ -13,6 +13,7 @@ Contents:
 
    关于Haiku.rst
    开发.rst
+   文档.rst
 
 
 
