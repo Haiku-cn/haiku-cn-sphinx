@@ -1,0 +1,59 @@
+x86 平台编译
+=======================
+
+x86 编译器
+----------------------
+
+构建 x86 平台编译器非常方便，并且仅和您的平台的 gcc 相关。更为完整的配置脚本的参数，请查看 :doc:`/guides/配置参数` 。
+
+在 Haiku 的源码目录，执行下属命令。（请确保调整参数以适应您的构建系统。）
+
+gcc2
+----------------------
+
+gcc2 是 R1 阶段默认的构建选择，它与 BeOS 保持二进制兼容性，能够允许原生的二进制 BeOS 应用在 Haiku 上面运行。
+
+.. code-block:: sh
+
+   ./configure --build-cross-tools x86_gcc2 ../buildtools
+
+gcc4
+----------------------
+
+gcc4 是 R1 之后的默认构建选择。gcc4 并不提供完整的 BeOS 二进制兼容性，但是受益于更为现代化的编译工具链。
+
+.. code-block:: sh
+
+   ./configure --build-cross-tools x86 ../buildtools
+
+
+gcc2h/gcc4h 混合构建
+----------------------
+
+Haiku 可以构建为混合的镜像，也就意味着它同时包涵 gcc2 和 gcc4 的二进制文件。更多信息可以查看 :doc:`/guides/混合gcc` 页面。
+
+x86 Haiku 构建
+----------------------
+
+These builds require a valid x86 compiler toolset (see above), and might also need additional software packages installed -- see the pre-requisite software page for more details.
+
+编译基本原生磁盘镜像
+----------------------
+
+This is the most basic build, it generally is good for quickly testing the OS after making modifications as it doesn't contain a lot of extra applications. Be sure to modify -j2 with the number of cpu cores on your build system to ensure the fastest build times.
+
+.. code-block:: sh
+
+   jam -q -j2 @image
+
+
+编译原生每日构建镜像
+----------------------
+
+This is the default nightly image build target. This contains a complete system with an included compiler. Be sure to modify -j2 with the number of cpu cores on your build system to ensure the fastest build times.
+
+.. code-block:: sh
+
+   jam -q -j2 @nightly-raw
+
+
