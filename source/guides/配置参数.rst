@@ -118,7 +118,7 @@
 
 * 构建x86平台的 GCC Hybrids
  
-  请查阅 `:doc:`/guides/GCC混合` 获取详细信息。
+  请查阅 :doc:`/guides/GCC混合` 获取详细信息。
 
 * 从 Linux/BSD/... 构建用于PPC的 GCC 4.x binutils 
 
