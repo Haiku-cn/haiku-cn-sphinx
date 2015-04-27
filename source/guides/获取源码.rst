@@ -1,0 +1,143 @@
+获取源码
+=======================
+
+.. note::
+
+   **还未完成**
+
+Haiku 的源码目前存放在基于 GIT 的 `代码库 <http://git-scm.com/>`_ 。匿名访问允许任何人下载 Haiku 的源代码，只有具有提交权限的 Haiku 贡献开发者（非匿名人员）才能使用认证方法进行访问。
+
+**配置GIT！在进行任何对 Haiku 代码提交（包括本地提交）之前请确保 `配置`_ 当前系统中的 git 环境!如果在提交之前，您配置的 git 环境不正确，可能会导致提交和邮件列表公开信息中不正确的命名。**
+
+**在 Haiku 中进行构建时，不需要 buildtools 。在 Haiku 预编译的镜像中已经包含了预安装的 buildtools 。**
+
+Git 访问 - 匿名方式
+-----------------------------------------------------
+
+* 构建工具：
+
+  .. code-block:: sh
+
+     git clone git://git.haiku-os.org/buildtools
+
+  或者（如果 git 协议被防火墙所阻挡，或者您希望使用加密的方式访问源代码）：
+
+  .. code-block:: sh
+
+     git clone https://git.haiku-os.org/buildtools
+
+* Haiku:
+
+  .. code-block:: sh
+
+     git clone git://git.haiku-os.org/haiku
+
+  或者：
+
+  .. code-block:: sh
+
+     git clone https://git.haiku-os.org/haiku
+ 
+Git 访问 - 具有提交权限的开发人员
+-----------------------------------------------------
+
+* 配置系统中的 Git
+
+  在新系统中首次提交之前，请 **确保** 正确配置 Git。全局的配置保存在 git 的配置目录(~/.git/)，并且作为个人信息添加到每次的提交信息。
+
+  .. code-block:: sh
+
+    git config --global user.name "John Doe"
+    git config --global user.email "john.doe@developers.com" 
+
+  如果您习惯于 svn 命令的简单版本（st, di, ... 而不是 status, diff ...），您可能会希望为 git 的长命令设置相应的简单的命名：
+
+  .. code-block:: sh
+
+     git config --global alias.st "status -s"
+     git config --global alias.di "diff"
+     git config --global alias.ci "commit"
+     git config --global alias.co "checkout" 
+    
+  对于 Mac OS X, 您可能希望设置下述的选项来避免对有关文件名称的 NFD 和 NFC 表达方式的困惑。
+
+  .. code-block:: sh
+
+     git config core.precomposeunicode true 
+
+* 构建工具：
+
+  *<login>@* 仅当您当前登录的用户名称和您在 git.haiku-os.org 中的名称不匹配时使用。
+
+  .. code-block:: sh
+
+     git clone ssh://<login>@git.haiku-os.org/buildtools
+
+
+* Haiku:
+
+  *<login>@* 仅当您当前登录的用户名称和您在 git.haiku-os.org 中的名称不匹配时使用。
+
+  .. code-block:: sh
+
+    git clone ssh://<login>@git.haiku-os.org/haiku
+ 
+
+从匿名访问到有权限的开发者
+-----------------------------------------------------
+
+如果您获取到了 Haiku 的访问权限，怎么办？恭喜！您不需要重新检出所有的源码。您只需要在现有的源码拷贝进行更新然后使用贡献者权限即可。仅需要修改远程链接：
+
+.. code-block:: sh
+
+   git remote set-url origin ssh://<login>@git.haiku-os.org/haiku
+ 
+
+注意事项
+-----------------------------------------------------
+
+* 大小写敏感文件系统
+
+  **Haiku 的源代码需要放置在大小写敏感的文件系统**
+    
+  简而言之，该文件系统需要能够将 "ThisIsAFile.txt" 和 "THISISAFILE.txt" 区分为两个不同的文件。大小写不敏感的文件系统包括： FAT32， NTFS， 和 HFS+。Mac OS X 的 HFS+ 默认情况下是大小写不区分的。更多有关如何创建大小写敏感的 HFS+ 文件系统，参见 `链接 <http://www.haiku-os.org/documents/dev/how_build_haiku_mac_os_x#part_diskimage>`_ 。
+
+* 通过 HTTP 代理获取源代码
+
+  **Haiku 的主 GIT 代码库不允许 HTTP 访问，那么当您通过只支持 HTTP 传输（80端口）的代理服务器进行网络访问时，就会出现问题。**
+
+  相应的，您可以通过匿名的 HTTP 访问我们托管在 GitHub 或者 Gitorious 网站的源码库，它们都和主源码库保持同步。首先，您需要设置 Git 通过您的代理服务器进行连接。
+
+  .. code-block:: sh
+    
+     git config --global http.proxy http://proxyuser:proxypwd@proxy.server.com:8080
+
+
+  然后克隆 GitHub 上的源码库：
+
+  .. code-block:: sh
+
+     git clone http://github.com/haiku/buildtools.git
+     git clone http://github.com/haiku/haiku.git
+
+  也可以克隆 Gitorious 上的源码库：
+
+  .. code-block:: sh
+
+     git clone http://git.gitorious.org/haiku/buildtools.git
+     git clone http://git.gitorious.org/haiku/haiku.git
+
+    
+  需要注意的是，这些源码库并不包涵任何的 hrev 标记，而该标记被 Haiku 构建系统用以确定当前系统版本。如果需要接触该限制，在构建 Haiku 时，使用 `HAIKU_VERSION 构建变量`_ 。
+
+* 更新源码库
+
+  **在执行拉取动动作时请使用 --rebase 参数以避免出现对非线性历史记录的困惑！（"Merge 'master' on ssh://git.haiku-os.org/haiku" 消息将会显示您的名称和其他修改） 在和其他人共享的分支上请勿使用 --rebase 参数！（rebase将会重写本地历史，如果您的本地历史和其他人克隆自您的不匹配，并且但他们希望推送给您的时候，将会出现严重问题）**
+
+  .. code-block:: sh
+
+    cd /path/haiku/haiku
+    git pull --rebase
+
+
+
