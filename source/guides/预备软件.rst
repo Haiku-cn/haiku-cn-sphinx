@@ -1,11 +1,10 @@
+.. role:: bash(code)
+   :language: bash
+
 预备软件
 =======================
 
-根据您所使用平台的不同，在为 Haiku 编译软件或者编译 Haiku 自身时，您可能需要额外的工具。
-
-目前，可以认为 Haiku 是最方便的开发环境。一个 Haiku 的预编译测试版本将会包含编译 Haiku 镜像的所有需要的工具。尽管 Haiku 不是最快速的编译环境，但是它能够即时的测试新编译的代码，而且还具有完成的预装工具链，可以减少让您犯愁的机会。
-
-目前，Haiku 能够支持自身构建，以及其他平台的交叉编译。
+根据您所使用平台的不同，在为 Haiku 编译软件或者编译 Haiku 自身时，您可能需要额外的工具。目前，可以认为 Haiku 是最方便的开发环境。**一个 Haiku 的 `每日构建镜像`_ （或者 `稳定版本`_ ）将会包含编译 x86 系统镜像所需要的全部工具**。尽管 Haiku 不是最快速的编译环境，但是它能够即时的测试新编译的代码，而且还具有完成的预装工具链，可以减少让您犯愁的机会。现在，在 Haiku 之上进行自身的构建可能会存在问题，尤其是当作为主机的 Haiku 系统版本比其所希望构建的系统版本老旧时候。在这种情况下，在其他系统上进行交叉编译，或者更新到新的 Haiku 系统将会解决这些问题。Haiku 目前支持自身的构建，或者在其他平台进行 *交叉编译* 。
 
 构建平台支持情况
 ----------------------
@@ -41,36 +40,38 @@ Zeta                   `pkg`_             否           -              曾经支
 常用工具列表
 ----------------------
 
-* Git 客户端，用以拷贝项目源代码
-* SSH 客户端，仅用于项目提交权限成员
+* `Git 客户端 <http://git-scm.com/>`_，用以拷贝项目源代码
+* `SSH 客户端 <http://www.openssh.com/>`_，仅用于项目提交权限成员
 
 编译构建工具要求
 ----------------------
 
-* autoconf
-* automake
-* makeinfo
-* flex
-* bison
-* gawk
-* zlib 开发包，用于编译 GCC4 构建工具
+* `autoconf <http://www.gnu.org/software/autoconf/>`_
+* `automake <http://www.gnu.org/software/automake/>`_
+* `makeinfo <http://www.gnu.org/software/texinfo/>`_
+* `flex <http://www.gnu.org/software/flex/>`_
+* `bison <http://www.gnu.org/software/bison/>`_
+* `gawk <http://www.gnu.org/software/tar/>`_
+* `zlib 开发包 <http://zlib.net/>`_ ，用于编译 GCC4 构建工具
 
 编译 Haiku 要求
 ----------------------
 
-* Haiku 交叉编译工具，仅用于非 Haiku 构建平台，如 Linux 等。
-* Jam，在 Haiku 中使用了定制的 Jam 版本。(包含在构建工具，用于交叉编译)
-* mkisofs，注意 genisoimage 不等同于 mkisofs。
-* wget，用于下载附加软件包。
-* Yasm (0.7.0 及更高版本)
+* **Haiku 交叉编译工具**，仅用于非 Haiku 构建平台，如 Linux 等。
+* `Jam <http://www.perforce.com/jam/jam.html>`_ ，在 Haiku 中使用了 `定制的 Jam 版本`_ 。
+* `mkisofs <http://sourceforge.net/projects/cdrtools/>`_，注意 genisoimage 不等同于 mkisofs。
+* `wget <http://www.gnu.org/software/wget/>`_，用于下载附加软件包。
+* `NASM <http://www.nasm.us/>`_
+* `curl 开发库 7.32.0+ <http://curl.haxx.se/>`_ 用于编译 libpackage 。
+* `bc <http://www.gnu.org/software/bc/>`_
 
 ARM 平台编译要求
 ----------------------
 
-* mkimage
-* Mtools
-* sfdisk
-* dtc (设备树编译器)
+* `mkimage <http://www.denx.de/wiki/U-Boot/WebHome>`_
+* `Mtools <http://www.gnu.org/software/mtools/intro.html>`_
+* `sfdisk <https://git.kernel.org/?p=utils/util-linux/util-linux.git>`_
+* `dtc (设备树编译器) <https://git.kernel.org/cgit/utils/dtc/dtc.git>`_
 
 Linux 平台备注
 ----------------------
@@ -217,22 +218,37 @@ Gentoo Linux 发行版
 .. image:: /_static/guides/macosx-32.png
   :align: right
 
-Mac OS X
+OS X
 -------------------------------------------------------------------
 
-Haiku 的构建需要大小写敏感文件系统。您可以使用磁盘管理工具(Disk Utility)创建大小写敏感磁盘镜像，然后用以保存 Haiku 源码树。
+Haiku 的构建需要大小写敏感文件系统。您可以使用磁盘管理工具(Disk Utility)创建大小写敏感磁盘镜像，然后用以保存 Haiku 源码树。而大小写敏感的 HFS+ 文件系统可以很好的工作。
 
-首先，安装 MacPorts(提供了标准的安装包)
-关闭当前终端，然后打开新终端窗口，输入：
+首先安装 Xcode，或者如果您不希望安装 Xcode 的所有工具，而只希望安装命令行工具，则只需要运行如下命令：
 
 .. code-block:: sh
 
-   sudo port install cdrtools gawk gnuregex wget yasm
+   xcode-select --install
+
+如果您不安装 Xcode 的所有工具，您运行如下命令，接受使用 Xcode 协议：
+
+.. code-block:: sh
+
+   xcodebuild -license
+
+在安装完成 Xcode 及命令行工具，并且同意接受终端用户协议，您可以使用 MacPorts 或者 Homebrew 安装所需要的软件。
+
+**希望通过 Macports 安装所需要的软件，请执行如下过程：**
+
+安装 `MacPorts <http://www.macports.org/>`_ (提供了标准的安装包)。关闭当前终端，然后打开新终端窗口，输入：
+
+.. code-block:: sh
+
+   sudo port install autoconf cdrtools gawk wget nasm less mpfr gmp libmpc
 
 （可能会有提示，需要您输入当前账户的管理员密码）
 
-如果出现错误 “port: command not found”，可能是因为保存在 ~/.profile 的 MacPorts shell 配置无法被当前用于使用。
-如果您使用的是 Bash，您可能会拥有一个 ~/.bash_profile 或 ~./bash_login 文件，而它阻止了 bash 读取~./profile。
+如果出现错误 “port: command not found”，可能是因为保存在 :bash:`~/.profile` 的 MacPorts shell 配置无法被当前用于使用。
+如果您使用的是 Bash，您可能会拥有一个 :bash:`~/.bash_profile` 或 :bash:`~./bash_login` 文件，而它阻止了 bash 读取 :bash:`~./profile`。
 检查 Bash 使用的文件（按照下面的顺序），然后将下述文本添加到指定文件。
 
 .. code-block:: sh
@@ -242,9 +258,21 @@ Haiku 的构建需要大小写敏感文件系统。您可以使用磁盘管理�
    export INFOPATH=$INFOPATH:/opt/local/share/info
 
 如果您使用的是其他的 shell，请查阅相关的手册，找出登录时解析的文件，然后添加所需的命令。
-之后，您可以重新尝试在新终端中运行 *port install...* 命令。
+之后，您可以重新尝试在新终端中运行 :bash:`port install...` 命令。
 
-备注：ARM 分支还未被 OSX 所支持，MacPort 具有 mtools，但是仍缺少了 sfdisk。
+.. note::
+
+   ARM 分支还未被 OSX 所支持，MacPort 具有 mtools，但是仍缺少了 sfdisk。
+
+**希望通过 Homebrew 安装所需要的软件，请执行如下过程：**
+
+使用链接页面提供的 ruby 命令行安装程序，安装 `Homebrew <http://brew.sh/>`_ ，然后使用下述命令安装构建 Haiku 所需要的软件包：
+
+.. code-block:: sh
+
+   brew install autoconf cdrtools gawk wget nasm homebrew/dupes/less mpfr gmp libmpc
+
+需要注意的是，您需要从相应的库安装 gnu 版本的 less 命令，因为 OSX 自带了 BSD 版本的 less 命令，但是 Haiku 需要的是 GNU 版本的 less 命令。
 
 .. image:: /_static/guides/beos-32.png
   :align: right
@@ -252,33 +280,42 @@ Haiku 的构建需要大小写敏感文件系统。您可以使用磁盘管理�
 BeOS 和 Zeta
 -------------------------------------------------------------------
 
-BeOS 和 Zeta 现在已经不是活跃的开发环境。在未来的某天，这些工具非常有可能需要由个人来提供更新。
+.. warning::
+   
+   BeOS 和 Zeta 现在已经不是活跃的开发环境。在未来的某天，这些工具非常有可能需要由个人来提供更新。
 
 * Git:当前不可用
-* SSH:[net_server,BONE]
-* 开发工具(包含过时的 GCC 版本，请使用下述的版本)
-* GCC compiler 2.95.3
-* GCC Haiku cross compiler 2.95.3(解压安装到:/boot)
-* Jam，2008-03-37
-* yasm 0.8.0 (用于BONE)
-* wget
+* SSH:[`net_server <http://www.haiku-os.org/files/ssh-3.9-r5.pkg>`_, `BONE <http://www.haiku-os.org/files/ssh-bone.pkg>`_ ]
+* `开发工具 <http://www.bebits.com/app/2680>`_ (包含过时的 GCC 版本，请使用下述的版本)
+* `GCC compiler 2.95.3 <http://www.bebits.com/app/4011>`_
+* `GCC Haiku cross compiler 2.95.3 <http://haiku.mlotz.ch/haiku_cross_compiler_bone_2.95.3-haiku-081024.zip>`_ (解压安装到:/boot)
+* `Jam，2008-03-37 <http://dev.haiku-os.org/raw-attachment/ticket/3783/jam-x86-beos-20080327.zip>`_
+* `yasm 0.8.0 (用于BONE) <http://revolf.free.fr/beos/yasm-0.8.0-r5bone.zip>`_
+* `wget <http://bebits.com/app/2848>`_
 
 Windows 平台 Cygwin 开发
 -------------------------------------------------------------------
 
-Cygwin是缺乏维护的开发环境。以下的说明由相应的社区提供。
+.. warning::
 
-* `/community/forum/cygwin_nt_build_support`_
-* `/community/forum/how_to_get_haiku_running_in_virtualbox`_
-* `MauriceK's instructions`_
+   Cygwin是缺乏维护的开发环境。以下的说明由相应的社区提供。
+
+   * `/community/forum/cygwin_nt_build_support`_
+   * `/community/forum/how_to_get_haiku_running_in_virtualbox`_
+   * `MauriceK's instructions`_
 
 Solaris
 -------------------------------------------------------------------
 
-Solaris也是缺乏维护的开发环境。下面的说明也由相应的社区来提供。
+.. warning::
 
-* [openbeos] Building Haiku on Solaris... 摘抄自邮件列表
+   Solaris也是缺乏维护的开发环境。下面的说明也由相应的社区来提供。
 
+   * `[openbeos] Building Haiku on Solaris... <http://www.freelists.org/post/haiku/Building-Haiku-on-Solaris,2>`_ 摘抄自邮件列表。
+
+
+.. _每日构建镜像: http://www.haiku-files.org/
+.. _稳定版本: http://www.haiku-os.org/get-haiku
 
 .. _Arch Linux: https://www.archlinux.org/
 .. _pacman: `pacman(Arch Linux)`_
@@ -294,7 +331,7 @@ Solaris也是缺乏维护的开发环境。下面的说明也由相应的社区�
 .. _Gentoo: https://www.gentoo.org/
 .. _Portage: `Gentoo Linux 发行版`_
 .. _Linux Mint: http://linuxmint.com/
-.. _MacPorts: `Mac OS X`_
+.. _MacPorts: `OS X`_
 .. _NetBSD: https://www.netbsd.org/
 .. _OpenSUSE: https://www.opensuse.org/
 .. _rpm/zypper: `基于 RPM 使用 zypper 的 GNU/Linux 发行版(OpenSUSE, SLES)`_
