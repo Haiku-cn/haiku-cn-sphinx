@@ -1,0 +1,210 @@
+第二十课
+======================
+
+在上一章里我们重点介绍了接口套件（Interface Kit）,在 Haiku 中进行编程时我们还需要特别关注的是存储套件(Storage Kit)。该套件主要用于处理磁盘上的文件和文件夹。在这一节，我们将要对有关存储的内容进行一个快速的介绍。不过别担心，这一章不会很难。
+
+## 存储套件概览
+
+该套件由六种基本类型的类组成。
+
+<table border="1">
+<tr> <th>类名	    </th>    <th>描述</th> </tr>
+<tr> <td>BfilePanel	</td>   <td>一个 GUI 控件，它用于浏览文件系统和选择文件或者文件夹。</td> </tr>
+<tr> <td>BReFilter  </td>   <td>用于筛选 entry_ref 对象的类，它通常和 BFilePanel 联合使用。</td> </tr>
+</table> 
+
+<table border="1">
+<tr> <td>Bquery 	</td>   <td>利用属性实现对文件系统的查询，Queries 仅能够在 BFS 卷中使用。</td> </tr>
+</table> 
+
+<table border="1">
+<tr> <td>Bvolume	</td>   <td>用于描述磁盘卷的类，该卷可以是硬盘分区，可移动设备，磁盘镜像，网络共享。</td> </tr>
+<tr> <td>BVolumeRoster</td>   <td>该类提供了一些工具用以获取系统中所有可用卷的信息</td> </tr>
+</table> 
+
+<table border="1">
+<tr> 
+<td>BDirectory</td>   
+<td> BDirectory 是一个非常有用的类，它提供了一些方法用以读取文件夹中的内容，创建文件，文件夹以及快捷式，而且可以用于找出特别的项目，例如确定其是否存在。</td> 
+</tr>
+<tr> 
+<td>BEntry</td>   
+<td>这是存储套件中最常用的类之一。用以表示文件夹中的一个项目，如文件或者文件夹。一个 BEntry 可以告诉你该路径是否存在，并且删除，或者移动它到同一个卷中的其他位置，还有其他的一些特性。</td> 
+</tr>
+<tr> 
+<td>BEntryList</td>   
+<td>你可能不会直接使用 BentryList 类。它定义了一个用于读取 BEntry 对象列表的接口，这也是它的派生类必须实现的。目前只有 BQuery 和 BDirectory 两个对象用于处理此种情况。</td> 
+</tr>
+<tr> 
+<td>BFile	</td>   
+<td>BFile 是另外一个常用的类。它代表了磁盘上的文件，提供了一些用于从文件中读取数据和写入数据到文件中的功能。它提供了一个比 fread() 及其友元函数更有好的接口，例如 BDirectory，它是一个 BNode 的子类，并且继承了 BNode 所有的属性相关函数。</td> 
+</tr>
+<tr> 
+<td>BNode	</td>   
+<td>一个 BNode 类代表了一个文件的数据部分。它提供了一些用于文件锁定和处理文件属性的函数。</td> 
+</tr>
+<tr> 
+<td>BNodeInfo</td>   
+<td>尽管 BNode 可以完成所有 BNodeInfo 处理的内容，但是 BNodeInfo 提供了一个用于一般属性任务的简单接口，例如取得文件类型等。需要特别注意的是 GetTrackerIcon() 静态函数，它用于获取在 Tracker 显示的图标。</td> 
+</tr>
+<tr> 
+<td>BPath</td>   
+<td>BPath 提供了简单的字符路径操作函数。它没有 BString 那么多花哨的技巧，但是它在特殊路径处理方面尤其特别之处，例如，把相对路径转变为绝对路径和添加项目名称。</td> 
+</tr>
+<tr> 
+<td>BStatable</td>   
+<td>该类提供了一个用于处理 stat() 函数提供的消息的友好接口，包括项目类型（文件，文件夹等），创建日期，修改日期，文件所有者等等。通常它并不会直接使用。Bstatable 是一个完全的抽象类，主要用于创建有子类来实现的接口。BNode 和 BEntry 都是 BStatable 的子类。</td> 
+</tr>
+<tr> 
+<td>BSymLink</td>   
+<td>BSymLink 基本没有什么用处，其中唯一有用的函数是 ReadLink()，但是由于 BsymLink 是 BNode 的子类，它并不了解它在文件系统中的位置。由 BEntry 提供的链接函数更加便捷。</td> 
+</tr>
+</table> 
+
+<table border="1">
+<tr> <td>BAppFileInfo</td>   <td>如果你不是开发 IDE，文件浏览器，或者相似的东西的话，该类将不会经常用到。它用于获取或者设置应用程序的相关信息，例如版本号，图标，支持类型等等。</td> </tr>
+<tr> <td>BMimeType</td>   <td>该类型你也不会经常用到。它用于解析 MIME 信息串，获取文件类型数据库的权限，和执行相关任务。它的主要任务是设置偏好程序的文件类型。</td> </tr>
+<tr> <td>BResources</td>   <td>与 BAppFileInfo 相类似，你可能不会使用该类，除非你在编写一个特别的程序，例如一个资源编辑器。它用于编程中源代码的装载，添加，和删除。</td> </tr>
+</table> 
+
+<table border="1">
+<tr> <td>The Node Monitor</td>   <td>The node monitor 不是一个实际的类，而是一个存储套件的服务组件，主要用于通知你文件系统中的更改，例如卷的安装与卸载，晚间的创建和删除，文件夹内容的改变。</td> </tr>
+</table> 
+
+## 项目应用: ListDir
+
+使用接口套件确实存在一个弊端：如果你使用了其中的一部分，那么你总是需要使用整个规范。例如，如果你希望从硬盘载入 BBitmap，你必须有一个有效地 BApplication，即使你可能不会用到它。但是存储套件不会有此限制。事实上，这里介绍的项目只是一个简单的终端程序，它仅用于本章的学习，但是它的代码风格与其他的 Haiku 程序是一致的。
+
+该项目称为 listdir，它是 bash 命令 ls的一个简单的版本。在出命令行下给出相关路径，我们的程序将会列出该文件夹中的内容以及其下每一个项目的大小。我们将会通过列出主文件夹中项目的多少来显示任何主文件夹的“大小”。
+
+### Main.cpp
+```C++
+    #include <Directory.h>
+    #include <Entry.h>
+    #include <Path.h>
+    #include <stdio.h>
+    #include <String.h>
+    // 最好使用全局的整型常数据成员来代替由#define定义的宏， 因为
+    // 常数据成员提供了强大的规范，不会像宏定义那样产生令人抓狂的错误
+    const uint16 BYTES_PER_KB = 1024;
+    const uint32 BYTES_PER_MB = 1048576;
+    const uint64 BYTES_PER_GB = 1099511627776ULL;
+    int 		     ListDirectory(const entry_ref &dirRef);
+    BString 	     MakeSizeString(const uint64 &size);
+    int
+    main(int argc, char **argv)
+    {
+        // We want to require one argument in addition to the program name when
+        // invoked from the command line.
+        if (argc != 2)
+        {
+            printf("Usage: listdir <path>\n");
+            return 0;
+        }
+        // Here we'll do some sanity checks to make sure that the path we were given
+        // actually exists and it's not a file.
+        BEntry entry(argv[1]);
+        if (!entry.Exists())
+        {
+            printf("%s does not exist\n",argv[1]);
+            return 1;
+        }
+        if (!entry.IsDirectory())
+        {
+            printf("%s is not a directory\n",argv[1]);
+            return 1;
+        }
+        // An entry_ref is a typedef'ed structure which points to a file, directory,
+        // or symlink on disk. The entry must actually exist, but unlike a BFile or
+        // BEntry, it doesn't use up a file handle.
+        entry_ref ref;
+        entry.GetRef(&ref);
+        return ListDirectory(ref);
+    }
+    int
+    ListDirectory(const entry_ref &dirRef)
+    {
+        // 该函数基本上完成了本程序所有的工作。
+        BDirectory dir(&dirRef);
+        if (dir.InitCheck() != B_OK)
+        {
+            printf("Couldn't read directory %s\n",dirRef.name);
+            return 1;
+        }
+        // 我们所要做的第一件事是快速找出最长的文件名称的长度，
+        // 在此基础上，我们才能够把所有文件以列表的形式对齐，
+        // 在命令行界面中输出。
+        int32 entryCount = 0;
+        uint32 maxChars = 0;
+        entry_ref ref;
+        // 调用 Rewind() 函数把 BDirectory 的索引移动到列表的首部
+        dir.Rewind();
+        // 当 BDirectory 获取到列表中的最后一个文件时， 
+        // GetNextRef()函数将会返回 B_ERROR。
+        while (dir.GetNextRef(&ref) == B_OK)
+        {
+            if (ref.name)
+                maxChars = MAX(maxChars,strlen(ref.name));
+        }
+        maxChars++;
+        char padding[maxChars];
+        BEntry entry;
+        dir.Rewind();
+        // 这里我们调用了 GetNextEntry() 函数而不是 GetNextRef()，那是因为一个 BEntry
+        // 将会允许我们获得每一个文件的信息，例如文件的大小。
+        // 同时，由于它继承了 BStatable 的一些功能，我们可以
+        // 仅需一个函数调用即可区分出文件和目录。
+        while (dir.GetNextEntry(&entry) == B_OK)
+        {
+            char name[B_FILE_NAME_LENGTH];
+            entry.GetName(name);
+            BString formatString;
+            formatString << "%s";
+            unsigned int length = strlen(name);
+            if (length < maxChars)
+            {
+                uint32 padLength = maxChars - length;
+                memset(padding, ' ', padLength);
+                padding[padLength - 1] = '\0';
+                formatString << padding;
+            }
+            if (entry.IsDirectory())
+            {
+            // 在本程序中将会通过输出该文件夹中项目的多少来
+            // 显示该文件夹的大小。
+                BDirectory subdir(&entry);
+                formatString << "\t" << subdir.CountEntries() << " items";
+            }
+            else
+            {
+                off_t fileSize;
+                entry.GetSize(&fileSize);
+                formatString << "\t" << MakeSizeString(fileSize);
+            }
+            formatString << "\n";
+            printf(formatString.String(),name);
+            entryCount++;
+        }
+        printf("%ld entries\n",entryCount);
+        return 0;
+    }
+    BString
+    MakeSizeString(const uint64 &size)
+    {
+        // 本函数把由 BEntry 的 GetSize() 方法提供的未加整理的字节数
+        // 转换为一种更加友好的形式进行输出。
+        BString sizeString;
+        if (size < BYTES_PER_KB)
+            sizeString << size << " bytes";
+        else if (size < BYTES_PER_MB)
+            sizeString << (float(size) / float(BYTES_PER_KB)) << " KB";
+        else if (size < BYTES_PER_GB)
+            sizeString << (float(size) / float(BYTES_PER_MB)) << " MB";
+        else
+            sizeString << (float(size) / float(BYTES_PER_GB)) << " GB";
+        return sizeString;
+    }
+```
+## 深入了解
+
+我们已经对接口套件和存储套件有了一定的了解。那么我们就有能力做一些东西了。你可能会找出一些以前的项目，然后检查其源码，看看自己可否对它进行修改和完善。如果你还没有尝试着创建自己的项目，那么你就该好好考虑一下啦。当然，很快的，接下来我们将会以更多的章节来介绍一些项目，在这些项目中，我们将会用到所有已经学过的编程内容。

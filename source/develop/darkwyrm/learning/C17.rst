@@ -1,0 +1,255 @@
+第十七课
+======================
+
+分神补习了操作符重载和复制构造函数的内容，我们已经耽搁了学习如何组织 Haiku 图形应用程序的内容。目前我们已经测试过了那些炙手可热的代码，启动任何 Haiku 程序，基于事件的编程，以及消息发送。那么这一节我们将要使用所了解的消息机制为程序创建一个菜单。
+
+## 使用菜单
+
+本节我们将要学习下面几个类：BMenu，BMenuBar，BMenuItem，以及 BView，但是在学习它们之前，我们需要把一个相对简单的应用组织起来，MenuColors，它显示一个具有彩色框的窗口，并且我们可以从菜单中选取相应的颜色。那么下面就开始我们的项目。
+
+1. 在 Paladin 中创建一个新的空项目。您可以将其命名为 MenuColors 或其他自己喜欢的名称。
+2. 在 Project 菜单下，点击 Add New File。
+3. 输入文件名称 App.cpp，选中 “Creat a header and a source file” 选框，然后点击 OK，或者按下回车键。App.cpp 和 App.h 就创建完成了。
+依照相同的步骤完成 MainWindow.cpp。
+4. 我们的文件都已经设置完备，就让我们敲入代码吧。首先，是用于 App.h 和 App.cpp 的代码。对于这些示例代码，最好将它们一行一行的输入而非复制粘贴进去，这样可以使您对它们更为熟悉。
+
+### App.h
+```C++
+    #ifndef APP_H
+    #define APP_H
+     
+    #include <Application.h>
+     
+    class App : public BApplication
+    {
+    public :
+    		App(void);
+    };
+     
+    #endif
+```
+### App.cpp
+```C++
+    #include "App.h"
+    #include "MainWindow.h"
+     
+    App::App(void)
+    	:	BApplication("application/x-vnd.test-MenuColors")
+    {
+    	MainWindow *mainwin = new MainWindow();
+    	mainwin->Show();
+    }
+     
+    int
+    main(void)
+    {
+    	App *app = new App();
+    	app->Run();
+    	delete app;
+    	return 0;
+    }
+```
+这些文件中的代码都是我们曾经学习过的。需要注意的是，我们并没有在 MainWindow 头文件的定义中添加它的类定义，如果您希望现在就编译项目，这将会产生错误。但别担心 — 我们很快就会让一切好起来，下面是 MainWindow.h 的代码：
+
+### MainWindow.h
+```C++
+    #ifndef MAINWINDOW_H
+    #define MAINWINDOW_H
+     
+    #include <Window.h>
+     
+    class MainWindow : public BWindow
+    {
+    public:
+    		MainWindow(void);
+    	void	MessageReceived(BMessage *msg);
+    };
+     
+    #endif
+```
+这也是我们非常熟悉的内容。所有这些新代码都会出现在 MainWindow.cpp，但是让我们从 MainWindow 的示例代码开始，将其一点一点的添加进去。编写代码最好的方式是一次添加一点，进行编译，然后测试您所写的代码以帮助找到错误。
+```C++
+    #include "MainWindow.h"
+     
+    #include <MenuBar.h>
+    #include <Menu.h>
+    #include <MenuItem.h>
+    #include <View.h>
+     
+    MainWindow::MainWindow(void)
+    	:	BWindow(BRect(100,100,500,400), "MenuColors", B_TITLED_WINDOW,
+     			B_ASYNCHRONOUS_CONTROLS | B_QUIT_ON_WINDOW_CLOSE)
+    {
+    }
+     
+    void
+    MainWindow::MessageReceived(BMessage *msg)
+    {
+    	switch (msg->what)
+    	{
+    		default:
+    		{
+    			BWindow::MessageReceived(msg);
+    			break;
+    		}
+    	}
+    }
+```
+现在我们已经完成了所有基本的代码，为了保证没有发生输入错误，需要将其编译。如果出现错误，再次检查上述代码并修改错误。编译顺利完成后，运行程序，如果一切正常，将其关闭，然后开始学习下面的内容
+
+## 添加视图
+
+窗口控件都是一些对象，它们都继承自 BView 类。如果您快速浏览一下 `/boot/develop/headers/os/interface/View.h `，您会发现它是一个巨大，复杂并且具有很多方法的类。幸运的是，我们现在还不需要了解很多。下面的 BView 类是我们的色彩框。添加这段代码到 MainWindow 构造函数：
+```C++
+    BView *view = new BView(BRect(100,100,300,200), "colorview", B_FOLLOW_ALL, 
+    				B_WILL_DRAW);
+    AddChild(view);
+    view->SetViewColor(0,0,160);
+```
+上面的代码非常简单。第一行创建了一个新的 BView，它的左上角为 (100,100)，右下角为 (300,200)。其名称为 “colorview”，并且当窗口缩放时进行缩放。B_WILL_DRAW 标志告诉窗口，它将自行绘制自己。若没有这个标志，这个 BView 将只是一个空的白色框。第二行代码将这个视图附加到窗口。最后一行代码将 BView 的颜色设置为深蓝色。编译您的项目，看看这次的结果如何。
+
+在 Haiku 里添加控件到窗口并不是很特殊。多数情况下有一个构造函数，并且需要相类似的信息和可能还有一个消息，但不会需要更多的东西。为窗口添加其他的控件也是同样的方式。一定要密切注意我们所使用的方法，您将会发现这些类具有很多的相似性。
+
+## 添加菜单
+
+除了弹出菜单，Haiku 中的其他菜单通常都保存于某种类型的菜单容器。Haiku API 提供了两种菜单容器：BMenuField 和 BMenuBar。暂时我们不需要 BMenuField，而将注意力放在 BMenuBar。如下所示，修改构造函数的代码：
+```C++
+    // 下面将定义菜单栏的高度。Bounds()返回窗口的尺寸。
+    // 在这里，矩形边框为 (0,0)~(200,100)。
+    BRect r(Bounds());
+    r.bottom = 20;
+     
+    // 在这里 r 唯一重要的部分是其高度。当我们添加项目到菜单栏时，
+    // 它将会在我们指定的高度根据窗口的宽度进行扩展。
+    BMenuBar *menuBar = new BMenuBar(r, "menubar");
+    AddChild(menuBar);
+     
+    BView *view = new BView(BRect(100,100,300,200), "colorview", B_FOLLOW_ALL,
+    				B_WILL_DRAW);
+    AddChild(view);
+    view->SetViewColor(0,0,160);
+```
+既然我们的颜色菜单已经具有了一个容器，那么我们就可以创建菜单了。这需要三个组件：菜单，菜单中条目，以及每个菜单条目的消息标识符。首先，我们来添加消息标识符。将下面的代码添加到文件顶部 #include 语句的后面。
+```C++
+    enum
+    {
+    	M_SET_COLOR_RED = 'sred' ,
+    	M_SET_COLOR_GREEN = 'sgrn' ,
+    	M_SET_COLOR_BLUE = 'sblu' ,
+    	M_SET_COLOR_BLACK = 'sblk' ,
+    };
+```
+这段代码中唯一让人疑惑的部分就是单引号中的值。这只是一些怪诞的程序员的搞怪而已。消息常量必须是 32 位整型。这些字符中每个都会转换为8位数，因此 “sred” 刚好是 32 位整型。确切说来，这些值本身并不重要，只要它们不同即可，但是按照惯例，它们都会设为这种四个字符的常量。
+
+这些常量可以放在类源文件或头文件的顶部。您通常会避免在头文件中添加标识符，这样可以避免在添加标识符后强制重编译其他的文件。这个约定也有个例外，那就是多个类都需要使用的消息则要添加在头文件中。
+
+现在消息标识符已经做了定义，那么我们就开始创建和构制菜单。代码如下：
+```C++
+    MainWindow::MainWindow(void)
+    	:	BWindow(BRect(100,100,500,400), "MenuColors", B_TITLED_WINDOW,
+    				B_ASYNCHRONOUS_CONTROLS | B_QUIT_ON_WINDOW_CLOSE)
+    {
+    	BRect r(Bounds(());
+    	r.bottom = 20;
+     
+    	BMenuBar *menuBar = new BMenuBar(r, "menubar");
+    	AddChild(menuBar);
+     
+    	// 下面是用于创建和构制菜单的代码
+    	BMenu *menu = new BMenu("Colors");
+    	menu->AddItem(new BMenuItem("Red", new BMessage(M_SET_COLOR_RED), 'R'));
+    	menu->AddItem(new BMenuItem("Green", new BMessage(M_SET_COLOR_GREEN), 'G'));
+    	menu->AddItem(new BMenuItem("Blue", new BMessage(M_SET_COLOR_BLUE), 'B'));
+    	menu->AddItem(new BMenuItem("Black", new BMessage(M_SET_COLOR_BLACK), 'K'));
+     
+    	// 菜单栏添加菜单和菜单添加条目的方法相同。事实上，
+    	// 菜单栏基本上也是一个菜单，只是它的条目水平排列，
+    	// 而菜单则竖直排列。
+    	menuBar->AddItem(menu);
+     
+    	BView *view = new BView(BRect(100,100,300,200), "colorview", B_FOLLOW_ALL,
+    				B_WILL_DRAW);
+    	AddChild(view);
+    	view->SetViewColor(0,0,160);
+    }
+```
+我们已经几近完成了！如果您尝试运行您的项目，点击菜单，您会发现什么都没发生。每样东西都应该照常运行的呀。在点击菜单条目时，它将会发送一个消息到窗口，例如，点击 “Red” 菜单，它将会发送消息 M_SET_COLOR_RED 到窗口。窗口接受这个消息，但是并没有对其进行处理，因此下面我们所需要做的就是编写代码，当窗口接受到菜单条目的消息时对其进行处理。
+```C++
+    void
+    MainWindow::MessageReceived(BMessage *msg)
+    {
+    	// FindView()是一个BWindow的方法，其用于通过名称
+    	// 搜索相应的BView，然后返回其地址的指针。
+    	BView *view = FindView("colorview");
+     
+    	switch (msg->what)
+    	{
+    		case M_SET_COLOR_RED:
+    		{
+    			// 当窗口收到该消息时，我们将其背景颜色设置为深红色。
+    			view->SetViewColor(160,0,0);
+     
+    			// 调用Invalidate()强制视图重绘自己。
+    			view->Invalidate();
+    			break;
+    		}
+    		case M_SET_COLOR_GREEN:
+    		{
+    			view->SetViewColor(0,160,0);
+    			view->Invalidate();
+    			break;
+    		}
+    		case M_SET_COLOR_BLUE:
+    		{
+    			view->SetViewColor(0,0,160);
+    			view->Invalidate();
+    			break;
+    		}
+    		case M_SET_COLOR_BLACK:
+    		{
+    			view->SetViewColor(0,0,0);
+    			view->Invalidate();
+    			break;
+    		}
+    		default:
+    		{
+    			// 通常，默认用于创建我们无需关心的
+    			// BWindow版本的方法处理消息。
+    			BWindow::MessageReceived(msg);
+    			break;
+    		}
+    	}
+    }
+```
+我们终于完成了！运行您的项目，然后当您点击菜单条目时我们的视图框将会修改器颜色。我们并没有完全努力去构制一个菜单。
+
+## 深入理解
+
+如果您愿意更加深入的完善代码，下面是一些您可以尝试完成的内容。
+
+1. 尝试修改 BView 构造函数中的 B_FOLLOW_ALL 重设尺寸模式为其他标识。将其修改为下面的内容，检查会有何不同：
+    * B_FOLLOW_LEFT | B_FOLLOW_TOP
+    * B_FOLLOW_LEFT_RIGHT | B_FOLLOW_TOP
+    * B_FOLLOW_RIGHT | B_FOLLOW_TOP
+    * B_FOLLOW_RIGHT | B_FOLLOW_BOTTOM
+    * B_FOLLOW_LEFT_RIGHT | B_FOLLOW_BOTTOM
+    * B_FOLLOW_RIGHT | B_FOLLOW_TOP_BOTTOM
+2. 尝试在菜单中添加更多颜色。
+3. 在菜单中添加 Quit 条目，使其向窗口发送 B_QUIT_REQUESTED 消息。
+
+## 需要记忆的内容
+
+### BWindow
+
+* BWindow(BRect frame, const char *title, window_type type, uint32 flags, uint32 workspace = B_CURRENT_WORKSPACE) — 创建一个新窗口。然而还有其他的类型，现在需要记住的窗口类型是 B_TITLED_WINDOW 和 B_DOCUMENT_WINDOW。
+* void AddChild(BView *child) — 将一个 BView（或BView子类）附属到一个窗口。
+* BView *FindView(const char *name) — 返回一个指向名称为 name 的 BView 的指针，若不存在则为 NULL。
+* BRect Bounds(void) — 返回窗口的客户区域尺寸，例如窗口矩形框内部的白色区域。
+* void Show(void) — 显示窗口。
+
+### BView
+
+* BView(BRect frame, const char *name, int32 resizeMode, int32 flags) — 创建一个新的视图，查阅 BeBook 中有关 BView 章节中所有可用的自定义尺寸模式。无需担心 flags 参数，目前只需要记住 B_WILL_DRAW 即可。
+* void SetViewColor(uint8 red, uint8 green, unit8 blue) — 设置视图的背景颜色。
+* void Invalidate(void) — 强制 BView 重绘自己。
+* void AddChild(BView *child) — 将一个 BView（或其子类）附属到视图。

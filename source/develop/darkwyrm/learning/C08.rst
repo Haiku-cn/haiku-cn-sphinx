@@ -1,0 +1,318 @@
+第八课
+======================
+
+因为目前我们重点介绍了 C++ 语言的结构，并没有给予我们程序信息的输入输出足够的重视。那么这次我们将会做出改变，但是首先，我们需要快速的查看一下那些被我们所忽视的细微之处。
+
+## 作用域
+
+无须对牙刷感到奇怪，尽管考虑到某些开发人员的卫生习惯，不是一个坏主意。幸运的是，在网络上，没有人会知道你是个小猫咪。
+
+在这里， **作用域** 作用于变量。一个变量的作用域是它的存在范围。当一个变量声明之后，它具有一个确定的开始，并且在源代码中，它无法在声明之前使用。并且当运行到达它所声明的区域结束的地方时，它将会完全消失。
+
+作用域有三种类型：局部的，全局的，以及静态的。局部变量具有最短的生命周期：它们在代码块中进行声明，如函数，for 循环，或者 case 语句中，并且当程序离开代码块时，它将会消失。
+
+全局变量和静态变量在函数之外声明。它们总是可以被访问，但是它们初始化的顺序是不确定的，因此需要注意哪些依赖于其他全局变量值的全局变量。全局变量在任何地方都可以访问。静态变量和全局变量具有同样的声明周期，但是它们仅可以在其所定义的文件的代码中所使用。换句话说，其他文件中的代码无法访问它们。所有这些可能比较复杂，但是在代码中还是比较容易理解，我们且看下面的示例：
+```C++
+#include <stdio.h>
+// 下面是一个全局变量，可以在任何地方进行访问
+int gAppReturnValue = 0;
+     
+int AreaOfSquare(int size)
+{
+    return size * size;
+}
+     
+int main(void)
+{
+    int returnValue = 1;
+ 
+    // 由于计算 0 英寸的平方比较简单，
+    // 我们在本循环中从 1 开始。
+    for (int i = 1; i <= 12; i++)
+    {
+    	// i 仅在本循环中可以访问。
+
+    	// 如果我们需要利用 returnValue，我们可以在这里使用。
+    	int area = AreaOfSquare(i);
+    	printf("The area of a square %d inches on a side is "
+    		"%d square inches\n",i,area);
+    }
+     
+    // 如果我们尝试在循环之外访问 area 变量，
+    // 编译器将会显示错误，其类似于
+    // "foo.cpp:30; error: 'area' was not declared in this scop"
+     
+    return gAppReturnValue;
+}
+```
+看了上面的例子，您应该注意到了您所定义的变量名。代码中这个长长的全局变量具有一个小写的前缀 'g'。它用于说明其为一个全局变量。静态变量则使用前缀 's' 而不是 'g'。尝试养成使用前缀的习惯可以避免许多头痛的事。
+
+如果您和我相似，您可能会想知道我所说的让人头痛的事究竟为何事。请看下面的示例，然后猜测打印的结果是什么。
+```C++
+#include <stdio.h>
+     
+//这是一个全局变量，可以在文件中的任何地方进行访问。
+static int returnValue = 1;
+     
+int main(void)
+{
+    int returnValue = 2;
+     
+    printf(" The return value of this program is %d\n",returnValue);
+     
+    return returnValue;
+}
+```
+如果您太懒而不想尝试该示例，我可以告诉你，其结果为 2。通过命令我们的静态变量为 sReturnValue ，我们可以非常简单的避免这种情况。当存在作用域冲突时，局部变量总是取得优先权。当然，也能够使用这种方式隐藏参数或预声明局部变量，例如 if 语句中的变量会对函数开头声明的变量隐藏。需要注意的是，不要使用函数中声明的变量隐藏其参数。
+
+全局和静态变量非常像厨艺中的佐料：少量使用，它们确实可以使程序很简单；但是使用太多，它们将会起到相反的作用。当无法确定时，不要使用全局变量传递数据 - 而是应该使用函数参数。这样做可以很容易的实现代码的复用。总之，工作之中，多用智慧，减少难度。
+
+## 常量
+
+在 C 和 C++ 中并不是所有的内容都需要修改。有些时候，我们需要保证某些数据不被修改。在其他时候，我们希望使用变量来存储某些随意的数值 - 我们不关心这些值的变化，但是我们需要存储它的目的。当我们编写使用窗口和按钮的 Haiku 程序时，我们将会使用很多这些内容以指定所使用的控件的行为，例如它们的尺寸控制。
+
+第一类常量是预处理程序定义。如果您不大记得第二课中所学，预处理器是编译源代码为可执行程序过程中所使用的第一个工具。预处理器移除注释，包括头文件，以及其他基础的插入和替代文本。它们如下所示：
+```C++
+#define SOMEDEF " I like cheese!"
+#define STRACE(x) printf x
+```
+格式非常简单：`#define `。它们是简单的文本替换，非常类似于字处理程序的替换，把所有的 SOMEDEF 替换为 "I like cheese!"。编译器所关心的就是，您是否输入了 SOMEDEF。您甚至可以使它们看起来像一个函数，如 STRACE。在本课结束，我们会对它有更加详细的讨论，因此敬请期待。
+
+`#define` 需要谨慎的处理，比数组有过之而不及。在实际应用中，将其写为大写形式比较好，这样可以区别于函数。它们也是无需注意类型的，并且还有一个警告：无论它们如何祈求，无论它们如何哭泣, **不要，请不要在预处理定义之后添加分号** 。
+```C++
+// 请不要这样做
+#define THISISBAD 1;
+```
+这样做将会导致代码出错，但是可能并不会带来真正的问题。这种类型的错误可能会让您觉得自己太过仓促，尽管您并非如此。
+
+常变量是推崇的存储随意值的方法，因为它们具有定义类型。可以在变量声明之前添加 const 关键字来实现。因为它们不允许修改，当其声明时，您总能够看到常量的初始化。
+
+`const int someConstIntValue = 3;`
+
+指针也可以成为常量，但是如果您不够谨慎，它很快就会让您产生疑惑。const 关键字可以作用于指针的地址，指针本身，或两者皆可。
+```C++
+    // 这只是一个整型常量，我们将会将其用于下面的一些指针。
+    const int someVariable = 5;
+     
+    // 以下两个都是到整型的指针，我们可以修改指针的地址，
+    // 但是无法修改它的值，因此它们无需进行初始化。
+    const int *ptrConstInt;
+    int const *anotherPtrConstInt;
+     
+    // 这是一个常量指针。其本身的值可以修改，但是我们无法修改
+    // 指针所指向的地址。除非我们对它进行初始化，否则毫无用处。
+    int * const constPtrInt = &foo;
+     
+    // 以下这些是指向常量值的常量指针。我们无法关于它的任何内容，
+    // 也就是说，无论用于何种用途，它都必须进行初始化。
+    const int * const ptrReallyConstInt = &someVariable;
+    int const * const anotherPtrReallyConstInt = &someVariable;
+```
+实在是太混乱了！有一个简单的规则可以解决所有的疑惑。**const关键字作用于其左端的元素，如果其左端为空，那么其作用域其右端的元素** 。在上述的前两个例子中，每次遇到 const int 或 int const，都意味着，指针本身可以修改，但是指针指向的地址中的值无法修改。每次您遇到 * const ，也就意味着指针的地址被锁定，但是指针地址中的值可以修改。最后两个例子综合了两种技术，使所有内容都为常量，包括地址和数值。如果您对此仍存疑惑，请无需担心太多 - 不仅仅您存在这种情况。这原本就是一个有难度的话题。
+
+## 外部数据使用：文件操作
+
+我们所知道的唯一为我们的程序获取信息的方法是 gets()，并且唯一输出信息的方法是 printf()。printf() 还算可以，但是 gets() 却非常危险，并且无论何时编译器遇到它，都会给我们以警告。其缘由就是，没有办法来强制限定传递给它的字符串中字符的数量。由于输入的字符数量多于给以的数组的容量时，程序很容易就会崩溃。因此我们需要一个更好的解决方案。
+
+程序中信息的输入输出通常是通过使用数据流来实现的。信息流进或流出您的程序。用户的直接输入是一个数据流，并且屏幕也是 - 用于输出的数据流。控制台程序利用流来获取和打印信息，并且它们可以组织到一起：当我们运行称为 bash 的 Terminal 时所使用的程序具有非常难以置信的能力，它能够接受某个程序的输出，并且可以将供其他程序使用，或者将其导入文件，这些直接的通道称之为**管道**。
+
+对于每个程序，都有三种主要的流可用：stdin，标准输入，stdout，标准输出，以及 stderr，错误输出。如果不做修改，那么程序将会通过 stdin 从用户获取输入，跟我们所使用的 gets() 相似，并且发送任何内容到 stdout 或者打印 stderr 到屏幕。
+
+数据可以通过数据流的读入而进入我们的程序，而且可以通过写入数据流从而从我们的程序中输出。有些流是只读的，一些是只写的，还有一些同时允许读和写。stdin 是只读的，因此我们可以使用它用于获取数据，stdout 和 stderr 是只写的，因此我们仅打印它们，如果我们创建一个流来操作文件，我们可以选择其中之一或者同时使用两者。
+
+每个流都有一个标识符，称为**句柄**。在编程时，句柄是随主观而定的 - 但是通常是独立的 - 数值，其用于区别不同种类的对象。对流的操作很简单，就是获取流的句柄，然后调用合适的函数。我们来看一下我们在日常的 C 编程中所使用的几个函数的声明。
+```C++
+    int printf(const char *format, ...);
+    int fprintf(FILE *streamHandle, const char *format, ...);
+```
+较早的标准。给定一个定义了打印内容格式的字符串，以及其后恰当数量的参数，然后打印字符串到 stdout 。fprintf() 需要在格式字符串之前指定一个流处理操作 - 使它能够直接“打印”文件 - 否则其和 printf() 一样。当成功时，这两个函数返回打印字符的数量。负数值用于表示运行失败。
+```C++
+    int ferror(FILE *streamHandle);
+```
+如果由 streamHandle 标识的流一切正常，返回的结果为 0，如果发生错误，那么返回的结果将为其他未指定的值。请确保 streamHandle 不为 NULL - 否则您的程序将会发生段错误。
+```C++
+    int feof(FILE *streamHandle);
+```	
+如果由 streamHandle 标识的流一切正常，返回的结果为 0；如果流到达了文件的结尾，那么返返回的结果将为其他未指定的值。请确保 streamHandle 不为 NULL - 否则您的程序将会发生段错误。
+```C++
+    char * fgets(char *array, int arraySize, FILE *streamHandle);
+```
+fgets() 是 gets() 的安全版本。它从流句柄里读取文本直到遇到了换行符 ('\n')或者它读取到的字符数量等于 arraySize，如果程序员产生了错误，将可能会产生段错误。和 gets() 相同，当成功时，fgets()返回 array 指针。如果出现错误，它将会返回 NULL 指针。如果 fgets() 到达了文件的结尾 - 仅从文件而不是 stdin 读取 - 数组中的内容将不会改变，但是将会返回 NULL 指针。无论何时 fgets() 返回了 NULL 指针，请使用 feof() 或者 ferror() 检查是否发生了数据溢出或者发生了某些错误。
+```C++
+    FILE * fopen(const char *filePath, const char *mode);
+```
+fopen() 以流方式打开文件。如果成功，它将会返回其他函数使用的流句柄，并且最终必须使用 fclose() 进行关闭。模式字符串如下表：
+
+<table border="1">
+ <tr> <th>模式字符串 </th>    <th> 功能 </th> </tr>
+ <tr> <td>"r"	 </td>   <td> 打开读取文件。该文件必须存在。 </td> </tr>
+ <tr> <td>"w"	 </td>   <td> 打开写入文件。如果文件存在，其内容将被擦除，并且它被视为新的空文件。 </td> </tr>
+ <tr> <td>"a"	 </td>   <td> 打开写入文件。任何写入的数据将添加到文件末尾。如果文件不存在，它将被创建。 </td> </tr>
+ <tr> <td>"r+" </td>     <td> 打开更新文件，同时支持读取和写入。文件必须存在。 </td> </tr>
+ <tr> <td>"w+" </td>     <td> 打开更新文件，同时支持读取和写入，如果文件存在，其内容将被擦除，它被视为新的空文件 </td> </tr>
+ <tr> <td>"a+" </td>     <td> 打开写入和追加文件。可以从文件任何地方进行读取，但是所有写入的内容将添加到文件末尾。 </td> </tr>
+</table> 
+```C++
+    int fclose(FILE *streamHandle);
+```
+关闭打开的流句柄。
+哇哦，有许多函数哟！比较骇人的部分是，这只是可用函数中很小的一部分。一个程序员必须时刻在学习。一旦他熟悉了一门语言，他总是在学习那些不太熟悉的可用函数，以及新的使用已知函数的方式。最好的学习如何使用不熟悉的函数的方式是使用它们。
+
+让我们查看以下这个打印测试文件到 stdout 并创建需要文件的程序。
+```C++
+    #include <stdio.h>
+     
+    int
+    FileExists(const char *path)
+    {
+        // 该函数通过尝试打开文件来测试文件的存在性。
+        // 当然还有其它方式可以处理，但是这种方法对
+        // 我们来说暂时已经足够了。
+        if (!path)
+    	return -1;
+     
+        // 尝试打开读取文件
+        FILE *file = fopen(path, "r");
+     
+        // 如果文件存在，返回值将会为 1 ，否则为 0。
+        // 如果打开文件出错，ferror() 将会返回非零结果，
+        // 如果文件打开正常，则返回 0 。
+        if (!file || ferror(file) != 0)
+    	returnValue = 0;
+        else
+        {
+    	fclose(file);
+    	returnValue = 1;
+        }
+     
+        return returnValue;
+    }
+     
+    int
+    MakeTestFile(const char *path)
+    {
+        // 在处理字符串时，总是检查 NULL 指针。
+        if(!path)
+    	return -1;
+     
+        // 打开文件，如果其存在，则擦除其内容。
+        FILE *file = fopen(path,"w");
+     
+        if (!file || ferror(file))
+        {
+    	// 如果我们不创建文件，我们将会产生不同的错误代码。
+    	// 这样可以让我们知道是否是因为传递 NULL 指针或者存在
+    	// 文件相关的错误而出现问题。
+    	fprintf(stderr, "Couldn't create the file %s\n", path);
+    	return 0;
+        }
+     
+        // 用于 stdout，stdin，和 stderr 的流句柄已经进行了定义，
+        // 因此我们可以直接进行使用，如在上述的 if() 条件，以及
+        // 下述的传递数据到我们的文件。
+        fprintf(file, "This is a file.\nThis is only a file.\n"
+    			    "Had this been a real emergency, do you think I'd "
+    			    "be around to tell you?\n");
+        fclose(file);
+        return 1;
+    }
+     
+    int 
+    main(void) 
+    {
+        int returnValue = 0;
+     
+        // 让我们使用 /boot/home 中的 MyTestFile.txt 测试文件。
+        const char *filePath = "/boot/home/MyTestFile.txt";
+     
+        // 如果不存在，则创建测试文件。如果创建出现问题，则释放我们的程序。
+        if(!FileExist(filePath)
+        {
+    	returnValue = MakeTestFile(filePath);
+    	if (returnValue != 1)
+    	    return returnValue;
+        }
+     
+        printf("Printing file %s:\n", filePath);
+     
+        // 我们到现在这一步，可以安全的打印文件了。
+        FILE *file = fopen(filePath, "r");
+     
+        if(!file || ferror(file))
+        {
+    	fprintf(stderr, "Couldn't print the file %s\n", filePath);
+    	return 0;
+        }
+     
+        char inString[1024];
+     
+        // 当 fgets 到达文件的末尾时，它将会返回一个 NULL 指针。因此这个小循环
+        // 将会打印整个文件，在末尾时退出。
+        while (fgets(inString, 1024, file))
+    	fprintf(stdout, "%s", inString);
+     
+        fclose(file);
+     
+        return 0;
+    }
+```
+哎哟！这就是我们最长的代码示例了，也是最接近“真实”程序的代码。一些习惯，如 if (!file) ，对于 C 和 C++ 编程非常普遍，所以请不要见怪。阅读了该示例中的代码，请确保了解每行代码的用意。
+
+在代码风格方面也有一些小的改变。对代码风格的关注是 Haiku 环境的一个怪癖。特别的是，Haiku 开发者尤其挑剔代码，始终遵循 OpenTracker 中的代码风格。风格需要部分的关注，但是好的代码风格也有助于代码调试和避免错误。不好的代码风格可以使之非常困难。在接下来的章节中，我们将要使用的风格可能会有别于官方的 Haiku 代码规范，但是它和它们非常的接近。
+
+## 错误查找
+
+### 错误 #1
+
+* 代码
+    ```C++
+        #include <stdio.h>
+        #include <string.h>
+         
+        char *ReverseString(const char *string)
+        {
+            // 该函数对字符串重新倒装排序。
+            // 如，abcdef -> fedcba 
+         
+            if (!string)
+        	return NULL;
+         
+            int length = strlen(string);
+            int count = length / 2;
+         
+            for (int 1 = 0; i < count; i++)
+            {
+        	char temp = string[length - i];
+        	string[length - i] = string[i];
+        	string[i] = temp;
+            }
+         
+            return string;
+        }
+         
+        int main(void)
+        {
+            char inString[1024];
+         
+            printf("Type a string to reverse:");
+            gets(inString);
+         
+            printf("The reversed string is %s\n", ReverseString(inString);
+         
+            return 0;
+        }
+    ```
+* 错误
+        
+        foo.cpp: In function 'char* ReverseString(const char*)';
+        foo.cpp:18: error: assignment of read-only location '*(string + ((unsigned int)
+        ((length + 0x00000000000000001) - i)))'
+        foo.cpp:19: error: assignment of read-only location '*(string + ((unsigned int)
+        i))'
+        foo.cpp:22: error: invalid conversion from 'const char*' to 'char*'
+		
+
+## 第七课错误查找答案
+
+1. combinedString 指针没有指向有效的内存地址。它需要通过 malloc() 给定堆内存 - 之后需要释放 - 或者在堆上声明为数组。
+2. main() 函数中的 binaryString 数组大小不够。它至少能够为一个字节中的每个位存放一个字符，还有一个空余用于存放 NULL 终止符，因此 binaryString 数组至少能够存放 9 个字符而不是 6 个。

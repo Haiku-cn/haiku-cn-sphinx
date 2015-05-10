@@ -1,0 +1,263 @@
+第二十一课
+======================
+
+我们所有的项目都不是很大，通常都不会花费很多时间。但是根据项目复杂性的大小，真实的编程项目可能会需要几个月或者更多的时间。在这一节里，我们将开始一个新的项目，相比于其他的许多 Haiku 程序，它比较小，但是我们需要好几个章节来完成这一项目。
+
+## 项目概览
+
+我们的项目相比较小。Unix 系统已经存在好长时间了，其中有一个命令行程序 fortune，它用于智能显示一些类型。通常在用户登录系统时，它就会运行。那么我们将会来编写一个 fortune 图形化程序而不是终端中的程序。由于我们不限于一个 fortune 文件，它将在原始的程序上有所给进。而且它将会在 fortune 中随机选择一个文件，然后在该文件中随机的选择一个入口。我们将会让用户能够按照自己的意愿来选择 fortune 程序。
+
+我们将会把代码分为两个主要的部分：GUI 和 fortune 的具体实现代码。fortune 的代码是一个类，它主要用于从 fortune 目录中选择 fortune 文件，从文件中随机选择一个入口，然后把它以字符的形式返回。GUI 由几多行的文本框组成，用于关闭程序的按钮和用于获取另一个 fortune 的按钮，以及一个用于显示该程序的编写者和版本号的介绍的按钮。这种根据任务来对代码进行分类的方法是一个很好的习惯，这有助于提高代码的复用性。
+
+## BFile：使文件完全按照要求“端坐”和“犬吠”
+
+通常我们不能够让文件像忠实的小狗一样听话，但是 BFile 类是非常有用，它给了我们一个选择，让我们可以对一个文件进行任何的操作：创建文件，读取文件，撤销甚至清除数据，因为它是 BNode 的子类，当然我们以为它添加，删除或者修改属性。对于那些不熟悉的东西，属性是 BeOS 的一个特性：文件的描述数据不是文件数据的一部分，但是这不是我们这一节的重点。下面是 BFile 类中我们最常使用的方法的列表：
+
+为一个 BFile 设置一个位置，这不仅仅是给予一个文件路径那么简单。实际上 SetTo() 有四个不同的版本。他们可以接收开放模式和字符路径，一个 BEntry，一个 entry_ref，或者一个字符格式相对路径的 BDirectory。开放模式是一个组合，一个由包含下面读或者写模式的标记的组合：
+
+BFile 的构造函数和他们的 SetTo() 调用使用相同的参数，但是他们不返回任何的错误代码。在处理文件时，会出现任何可能的错误，所以一定要确保在创建一个 BFile 后，及时检查由 SetTo() 或者 InitCheck() 调用返回的错误信息。同时需要注意的是，在任何给定时间，系统只能够处理一定数量的文件。在设置好路径后，每一个 BEntry、BFile、BNode 或者 BDirectory 只能使用一个路径，所以在处理完成之后，Unset() 或者删除它们。
+
+## 使用 BFile 读和写文件
+
+BFile 使文件的读取非常容易。Read() 函数获取一个未类型化的字节缓冲区和将要读取的数据量以便从文件接收数据。在处理下一个数据时，通常你需要使用一个 char 阵列，或者一个 BString。下面是使用 BFile 和 BString 来读取文件的方法：
+```C++
+    status_t
+    ReadFile(const char *path)
+    {
+        if (!path)
+            return B_BAD_VALUE;
+     
+        // Set up the file to read
+        BFile file("/boot/home/Desktop/MyFile.txt", B_READ_ONLY);
+        if (file.InitCheck() != B_OK)
+        {
+            printf("Couldn't read the file\n");
+            return B_ERROR;
+        }
+        off_t fileSize = 0;
+        file.GetSize(&fileSize);
+        if (fileSize < 1)
+        {
+            printf("File is empty, so no data to read\n");
+            return B_OK;
+        }
+     
+        // Create a buffer to hold the file data
+        BString fileData;
+     
+        // We can't directly pass a BString to Read(), so we'll use the BString
+        // method LockBuffer() to get a pointer to its internal storage. While the
+        // BString is locked, we can't use any of its methods, but we can make
+        // whatever changes we want to the internal string array that it uses.
+        // LockBuffer() takes an integer of the maximum size that the array will
+        // be expected to be. We'll pad the number just in case so that there are
+        // no unexpected crashes.
+        char *buffer = fileData.LockBuffer(fileSize + 10);
+     
+        // Read() will return the number of bytes actually read, but we're going
+        // to ignore the value because we're reading in the entire file.
+        file.Read(buffer, fileSize);
+     
+        // Unlock the BString so we can use its methods again.
+        fileData.UnlockBuffer();
+     
+        return B_OK;
+    }
+```
+写入文件更加简单。Write() 函数同 Read() 函数有相同的参数，但是不同的是，Read() 把数据从文件拷入缓冲区，而 Write() 则把数据从缓冲区拷入文件。
+```C++
+    void
+    WriteFile(const char *path)
+    {
+        if (!path)
+        {
+            printf("NULL path sent to WriteFile\n");
+            return B_BAD_VALUE;
+        }
+     
+        // Create a file, if needed, and make it both readable and writable
+        BFile file(path,B_READ_WRITE | B_CREATE_FILE);
+        if (file.InitCheck() != B_OK)
+        {
+            printf("Couldn't write file &s\n", path);
+            return B_ERROR;
+        }
+        char testString[] = "This is some file data.\nIt's not really important.\n";
+        file.Write(testString,strlen(testString));
+        return B_OK;
+    }
+```
+## 开始我们的项目：HaikuFortune
+
+* 打开 Paladin，使用 MainWindow 模板创建一个新的 GUI 项目。
+* 按下 Alt+N，或者从 Project menu（项目菜单）选择 New File（新建文件），然后创建一个 FortuneFunctions.cpp 文件。一定要检查文本框中是否创建了一个相同的头文件。
+
+我们要做的第一件事是设计一个类，该类从 fortune 目录中获取 fortune。
+```C++
+    #ifndef FORTUNEFUNCTIONS_H
+    #define FORTUNEFUNCTIONS_H
+     
+    #include <List.h>
+    #include <String.h>
+    extern BString gFortunePath;
+     
+    class FortuneAccess
+    {
+        public:
+        FortuneAccess(void);
+        FortuneAccess(const char *folder);
+        ~FortuneAccess(void);
+        status_t 	SetFolder(const char *folder);
+        status_t 	GetFortune(BString &target);
+        int32 		CountFiles(void) const;
+        status_t 	LastFilename(BString &target);
+     
+        private:
+        void 		ScanFolder(void);
+        Void		MakeEmpty(void);
+        BString 	        fPath, fLastFile;
+        BList 		fRefList;
+    };
+    #endif
+```
+在这个类中，每一个方法都是有其用途的。首先，创建两个不同的析构函数时为了创建一个 FortuneAccess 对象的方便；在对象实例化时，不必考虑我们对于所要搜索的文件夹是否有所了解。SetFolder() 允许我们按照自己的意愿改变文件夹。GetFortune() 是我们在首要位置创建给类的主要原因：一个可复用的从指定文件夹中获取 fortune 的对象。CountFiles() 显示可用文件的数量。LastFilename() 显示最近的 fortune 中的文件名。ScanFolder() 贯穿整个目录，并且编译一个理论上应该包含 fortune 的可用的文件列表。
+
+MakeEmpty() 是一个清除函数，在这里有必要对它进行一个简短的介绍。在 Fortune 文件夹中设置的文件名列表作为 entry_ref 对象的集合保存在一个 BList 中。对于 BList，有两个问题：当我们访问 static_cast 中的一个对象时，我们需要 static_cast，由于 BList 非常关注在它内部的内存分配，当列表被释放的时候，我们给予他的项目并没有被清除。这就意味着，我们必须手动的遍历类表，获取每个项目，然后进行释放。这是一个瓶颈，但很不幸的是，这是所有我们目前所拥有的。也许将来会有更好的解决办法，可是我们必须等下一次了，现在这对于我们的项目已经足够了。
+
+下面是我们整个类的框架，包括每个函数的功能。那么你的工作就是写出这些代码。
+```C++
+    #include "FortuneFunctions.h"
+     
+    #include <Directory.h>
+    #include <Entry.h>
+    #include <File.h>
+    #include <OS.h>
+    #include <Path.h>
+     
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <string.h>
+     
+    // Initialize the global path to a hardcoded value just in case.
+    // This happens to be different under Haiku than under previous versions
+    // of BeOS
+    BString gFortunePath = "/boot/system/data/fortunes";
+     
+    FortuneAccess::FortuneAccess(void)
+    {
+    }
+     
+    FortuneAccess::FortuneAccess(const char *folder)
+    {
+        SetFolder(folder);
+    }
+     
+    FortuneAccess::~FortuneAccess(void)
+    {
+        // Free all items in our list
+    }
+     
+    status_t
+    FortuneAccess::SetFolder(const char *folder)
+    {
+        // Make sure that folder is valid and return B_BAD_VALUE if it isn't.
+        // Set the path variable, scan the folder, and return B_OK
+    }
+     
+    status_t
+    FortuneAccess::GetFortune(BString &target)
+    {
+        // Here's the meat of this class:
+        // 1) Return B_NO_INIT if fPath is empty
+        // 2) Return B_ERROR if the ref list is empty
+     
+        // 3) This line will randomly choose the index of a file in the ref list
+        int32 index = int32(float(rand()) / RAND_MAX * fRefList.CountItems());
+     
+        // 4) Get a pointer to the randomly-selected entry_ref
+        // 5) Create and initialize a BFile object in read-only mode
+        // 6) Check to make sure that the BFile's status is B_OK
+        // 7) Set fLastFile to the name property of the ref we just
+        // 8) Get the file's size.
+        // 9) If the file is empty, return B_ERROR.
+     
+        // 10) Create a BString to hold the data in the file
+        // 11) Create a char pointer that we'll use in BFile::Read.
+     
+        // 12) Initialize the pointer using BString::LockBuffer, passing the file's
+        //	 size + 10 bytes (for safety) as the size. LockBuffer temporarily gives
+        //	 you access to the BString's internal char array. We'll need this to
+        //	 be able to read the file's data into the BString.
+     
+        // 13) Use BFile::Read() to read the entire file using our new char pointer.
+        // 14) Call BString::UnlockBuffer() to invalidate our char pointer and
+        // 	allow us to use regular BString methods again.
+     
+        // 15) Use a loop to manually count the number of record separators in the
+        // 	fortune file. The separator is the string "%\n", so use a
+        // 	combination of BString::FindFirst and offsets in a loop to count them.
+        // 16) Use this line to randomly choose an entry.
+        int32 entry = int32(float(rand()) / RAND_MAX * (entrycount - 1));
+     
+        // 17) Use FindFirst again to find the starting offset of this
+        //	 randomly-chosen entry in the file.
+        // 18) Call FindFirst one last time to find the offset of the next separator
+        //	 so we know how long the fortune is.
+        // 19) Create a BString to hold the fortune.
+        // 20) Set this new BString to the String() method plus the starting offset
+        //	 of the BString holding the file data. This will effectively chop out
+        //	 everything that is before our fortune in the file. It should look
+        //	 something like this:
+        //	 BString fortune = filedata.String() + startingOffset;
+        // 21) Chop off everything after our fortune in the fortune BString by
+        //	 calling its Truncate() method.
+        //	 Hint: length = endingOffset – startingOffset + 2
+        // 22) Set the parameter 'target' to our fortune data and return B_OK
+    }
+     
+    void
+    FortuneAccess::ScanFolder(void)
+    {
+        // Use a BDirectory for this. Make sure that it is initialized from fPath
+        // properly. Empty the ref list so that we're not adding to an existing
+        // list. Use BDirectory::GetNextEntry to get the entry for each file in the
+        // folder. Use the BEntry to check to make sure that the entry is a file,
+        // and, assuming so, make a new entry_ref, send it to BEntry::GetRef,
+        // and add it to our ref list.
+    }
+     
+    void
+    FortuneAccess::MakeEmpty(void)
+    {
+        // Iterate through the ref list and delete each entry_ref. After doing
+        // this, call BList::MakeEmpty().
+    }
+     
+    int32
+    FortuneAccess::CountFiles(void) const
+    {
+        return fRefList.CountItems();
+    }
+     
+    status_t
+    FortuneAccess::LastFilename(BString &target)
+    {
+        // Return B_NO_INIT if the path variable is empty
+        // Set the target parameter to our fLastFile property and return B_OK
+    }
+```
+## 编写和测试代码
+
+由于我们在处理不包含 GUI 的代码，所以在终端中测试所有的代码将会及其容易。在 App.cpp 的 main() 函数中，注释除了返回值外的所有代码，并且快速的编写代码以确保所有的代码都能够正确的运行。下面是一些建议，希望能够使程序的编写变得更加容易：
+
+* 首先编写析构函数和 MakeEmpty() 函数。
+* 接下来实现 SetFolder()。
+* 由于 GetFortune() 依赖于 ScanFolder()，所以接下来应该编写 ScanFolder() 函数。Main() 函数中的测试代码应该只调用 SetFolder()，并且设置你希望用作测试的路径。使用 printf() 输出显示 ScanFolder() 正在处理的任务将会是一种比较好的调试方法，例如，搜索到的每一个 ref 的名字。
+* 一旦 ScanFolder() 编写完成，就需要开始 GetFortune() 的实现。完成之后，使用 printf() 找出进展状况。
+* 你可以根据自己的情况来实现 LastFileName() 函数，在我们开始实现 GUI 之前，它并不是很重要。
+
+如果你的 FortuneAccess 类完成并且经过了测试，你应该在其基础之上编写一个比 fortune 本身更好的命令行下的 fortune 程序。
+
+## 深入学习
+
+直到现在，我们还没有接触到 GUI。好好考虑一下这个问题，如何利用图形控件制作一个简单的界面来展示 fortune。接下来，学习了 GUI 的有关内容之后，我们的项目将会得到完善。
