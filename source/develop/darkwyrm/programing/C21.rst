@@ -1,0 +1,271 @@
+第二十一课
+=======================
+
+## Haiku Replicants
+
+“神光普照，雷声轰鸣，天使腾空待发；天际处，黑云密布，鬼影瞳瞳。”
+
+在 Haiku 的世界里，Replicant 除了带了惊奇之外，别无其他，而且它们与刀锋战士无关。相反，它们与组件技术非常相似。对于不熟悉的人来说，组件属于面向对象编程的范畴，程序由对象构成，而它们虽具不同功能，但却具有通用的接口。而 Replicant 则内建于 Haiku API，是一种与基于 BView 对象交互的方法，但不需要对其有任何了解。远在 1995 年，BeOS 能够在桌面上嵌入一个网络浏览器，而不会像 Windows 95 一样带来严重的安全风险。但不幸的是，在 Be 引入这一功能之后，并没有对其进行广泛的使用，但是在近几年，Haiku 的开发者则对其进行了推广使用。在本节里，我们将花一些时间来了解它们的原理。
+
+## 归档和实例化
+
+在 Haiku 的 API 的继承关系中，其中最顶层的类之一就是 BArchivable 类。它主要用于提供一个接口，从而可以启用子类将它们的状态保存到 BMessage ，然后发送到目标，或者处理后保存到磁盘。如果您没有注意到这些课程的联系，BMessage 其实就像是地板蜡和金奶油，或者说万金油。
+
+为了是一个对象能够存档，仅需要实现三个函数：Archive()，Instantiate() 以及对象的一个构造函数，仅接受一个 BMessage 作为参数。Archive() 将对象的状态保存到 BMessage，Instantiate() 从 BMessage 中加载该状态。在已存在的控件环境中，归档非常容易理解，因此我们以 ColorWell 类中的一些新代码进行讲解。
+```C++
+status_t
+ColorWell::Archive(BMessage* data, bool deep) const
+{
+    status_t status = BControl::Archive(data, deep);
+    data->AddString("class", "ColorWell");
+		
+    return status;
+}
+```
+Archieve() 方法完成四个步骤：调用继承的方法以确保父类能够保存任何适当的属性，保存类的名称到 BMessage 的 class 属性，将对象的所有状态信息保存到 BMessage，最后如果 deep 为真，则保存所有附加信息。
+
+在上述的示例中，我们不需要保存附加信息。BControl 版本的 Archive() 保存了控件的值。我们的 ColorWell 将该值保存为 rgb_color 结构和整型。当我们解码 ColorWell 实例时，只需要将由 BControl::Archive() 保存的整型值转换为 rgb_color，然后我们需要将状态设置为消息中的状态。
+
+多数复杂的对象会将其他的属性放置到 BMessage 存储。但是，对于这些属性，其中并没有事先定义的命名机制，因此我们对名称的选择要特别注意，以免带来冲突。属性保存最简单的方法是使用类名，如下：
+```C++
+msg->AddString("MyClassName::MyStringProperty", "SomeString");
+msg->AddBool("MyClassName::SomeOtherProperty", someBooleanFlag);
+```
+简单对象通常会忽略 deep 标记。其目的是标识对象在完成自身状态保存之后，继续。例如，如果一个 BView 标定了 deep 保存请求，它也将会保存其子类的状态。
+
+现在我们已经了解了如何保存对象的状态，那么接下来就是状态载入。下面我们定义其余两个方法：
+```C++
+ColorWell::ColorWell(BMessage* data)
+    :    BControl(data)
+{
+    // 继承的BControl构造函数将会从消息中提取颜色
+    // 的整型值，因此我们所需要做的就是更新fColor。
+    // 除了复制和粘贴颜色，我们需要调用SetValue()
+    // 来扛起所有的重任。这类技巧将使调试和代码管理
+    // 更为容易。
+    SetValue(Value());
+}
+
+BArchivable* 
+ColorWell::Instantiate(BMessage* data)
+{
+    if (validate_instantiation(data, "ColorWell"))
+        return new ColorWell(data);
+		
+    return NULL;
+}
+```
+instantiate() 属于包裹代码。validate_instantiation() 仅用来检查，以确保 BMessage 保存了用于 ColorWell 对象的信息。假定检查过后，它使用上述为归档的构造函数返回了 ColorWell 实例。该构造函数就和 Archive() 中数据保存一样，仅从 BMessage 中载入了数据。
+
+为了实例化一个归档对象，必须如下调用 instantiate_object()：
+```C++
+BArchivable* archivable = instantiate_object(msg);
+
+MyDesiredClass* object = NULL;
+if (archivable)
+    object = dynamic_cast<MyDesiredClass*>(archivable);
+```
+Be Book 推荐使用预处理宏 cast_as()，但是它已被弃用。建议使用 dynamic_cast。
+
+尽管能够仅解档任何归档消息，但是没有用于发现归档消息中内容的机制，Be 期望开发者遵循预定的机制，例如 replicant 所使用的方法。
+
+## 创建 Replicant
+
+Relicant 只是一个可归档的 BView 控件。假定每个子控件都能够归档，并且实例化，那么创建 replicant 所需要的仅仅是添加 BDragger 类的一个实例即可。
+```C++
+BDragger(BRect frame, BView* target, int32 resizeMode = B_FOLLOW_NONE, uint32 flags = B_WILL_DRAW);
+```
+BDragger 对象是创建 replicant 的关键。它们是 BView 的子类，并且具有目标 BView 对象，与 BScrollView 非常类似。它们需要满足一些条件：
+
+* BDragger 期望其目标为它的父系，子系，或者视图继承关系中的同级。
+* 如果 BDragger 实例是其目标的子系，那么它必须是目标唯一的子视图，并且它的结构至少需要和拖动句柄一样大，即 7 个像素。
+* 如果 BDragger 实例为目标的父系，那么它的结构至少要和目标等大。
+
+
+下面是一个能够表现 Replicant 简易性的示例。它取自 Haiku 演示程序 OverlayImage 的主视图代码。
+```C++
+/*
+ * Copyright 1999-2010, Be Incorporated. All Rights Reserved.
+ * This file may be used under the terms of the Be Sample Code License.
+ *
+ * Authors:
+ * 				Seth Flexman
+ *				Hartmuth Reh
+ * 				Humdinger		<humdingerb@gmail.com>
+ */
+#include "OverlayView.h"
+
+#include <Catalog.h>
+#include <InterfaceDefs.h>
+#include <Locale.h>
+#include <String.h>
+#include <TextView.h>
+
+#undef B_TRANSLATE_CONTEXT
+#define B_TRANSLATE_CONTEXT "Main Window"
+
+const float kDraggerSize = 7;
+
+OverlayView::OverlayView(BRect frame)
+    :
+BView(frame, "OverlayImage", B_FOLLOW_NONE, B_WILL_DRAW)
+{
+    fBitmap = NULL;
+    fReplicated = false;
+	
+    frame.left = frame.right - kDraggerSize;
+    frame.top = frame.bottom - kDraggerSize;
+
+    BDragger* dragger = new BDragger(frame, this, B_FOLLOW_RIGHT|B_FLOLLOW_BOTTOM);
+    AddChild(dragger);
+    SetViewColor(B_TRANSPARENT_COLOR);
+    fText = new BTextView(Bounds(), "bgView", Bounds(), B_FOLLOW_ALL, B_WILL_DRAW);
+    fText->SetViewColor(ui_color(B_PANEL_BACKGROUND_COLOR));
+    AddChild(fText);
+    BString text;
+    text << B_TRANSLATE(
+    "Enable \"Show replicants\" in Deskbar. \n"
+    "Drag & drop an image. \n"
+    "Drag the replicant to the Desktop.");
+    fText->SetText(text);
+    fText->SetAlignment(B_ALIGN_CENTER);
+    fText->MakeSelectable(false);
+    fText->MoveBy(0, (Bounds().botton - fText->TextRect().bottom) / 2);
+		
+}
+
+OverlayView::OverlayView(BMessage* archive)
+    :	
+BView(archive)
+{
+    fReplicated = true;
+    fBitmap = new BBitmap(archive);
+}
+
+OverlayView::~OverlayView()
+{
+    Delete fBitmap;
+}
+
+void
+OverlayView::Draw(BRect)
+{
+	SetDrawingMode(B_OP_ALPHA);
+	SetViewColor(B_TRANSPARENT_COLOR);
+	
+	if (fBitmap)
+	DrawBitmap(fBitmap, B_ORIGIN);
+}
+
+void
+OverlayView::MessageReceived(BMessage* msg)
+{
+	switch (msg->what) 
+	{
+	case B_SIMPLE_DATA:
+	{
+	    if (fReplicanted)
+		break;
+			
+	    entry_ref ref;
+	    msg->FindRef("refs", &ref);
+	    BEntry entry(&ref);
+	    BPath path(&entry);
+	
+	    delete fBitmap;
+	    fBitmap = BTranslationUtils::GetBitmap(path.Path());
+	
+	    if (fBitmap != NULL) 
+	    {
+		if (fText != NULL) 
+		{
+		    RemoveChild(fText);
+		    fText = NULL;
+	        }
+	
+		BRect rect = fBitmap->Bounds();
+		if (!fReplicated) 
+		{
+		    Window()->ResizedTo(rect.right, rect.bottom);
+		    Window()->Activate(true);
+		}
+		ResizeTo(rect.right, rect.bottom);
+		Invalidate();
+	    }
+	    break;
+	}
+	case B_ABOUT_REQUESTED:
+	{
+	    OverlayAboutRequested();
+	    break;
+	}
+	default:
+	{
+	    BView::MessageReceived(msg);
+	    break;
+	}
+    }
+}
+
+BArchivable* OverlayView::Instantiate(BMessage* data)
+{
+    return new OverlayView(data);
+}
+
+status_t
+OverlayView::Archive(BMessage* archive, bool deep) const
+{
+    BView::Archive(archive, deep);
+	
+    archive->AddString("add_on", "application/x-vnd.Haiku-OverlayImage");
+    archive->AddString("class", "OverlayImage");
+
+    if (fBitmap)
+    {
+	fBitmap->Lock();
+	fBitmap->Archive(archive);
+	fBitmap->Unlock();
+    }
+	
+    return B_OK;
+}
+
+void
+OverlayView::OverlayAboutRequested()
+{
+    BAlert* alert = new BAlert("about",
+        "OverlayImage\n"
+        "Copyright 1999-2010\n\n\t"
+        "originally by Seth Flaxman\n\t"
+        "modified by Hartmuth Reh\n\t"
+        "further modified by Humdinger\n",
+        "OK");
+	
+    BTextView* view = alert->TextView();
+    BFont font;
+    view->SetStylable(true);
+    view->GetFont(&font);
+    font.SetSize(font.Size() + 7.0f);
+    font.SetFace(B_BOLD_FACE);
+    view->SetFontAndColor(0, 12, &font);
+
+    alert->Go();
+}
+```
+在您构造了目标对象 BView 和相关的 BDragger 后，将它们放置到合适的视图层级，之后就不需要其他的工作了。用户可以拖动 BDragger 句柄，它将会复制原本的视图。当然，除非您对其进行了拖动，否则它并不会执行任何动作。下面将介绍 BShelf 类。
+
+BShelf 是一个附属于 BView 类的 BHandler 类，可以接受复制体（replicant）。它有三种不同的构造函数：
+```C++
+BShelf(BView* view, bool allowDragging = true, const char* name = NULL);
+BShelf(entry_ref* ref, BView* view, bool allowDragging = true, const char* name = NULL);
+BShelf(BDataIO* stream, BView* view, bool allowDragging = true, const char* name = NULL);
+```
+后两个构造函数初始化 shelf 为一个文件，shelf 将会利用它来保存复制体。如果 allowDragging 为真，在复制体放置到 shelf 之后，用户将允许移动这些复制体。反之，它们将会固定到初始化位置。shelf 的名称非常重要，如果 shelf 具有名称，系统将会检查并确保任何放置到其中的复制体带有 shelf_type 字段，并且该字段需要匹配 shelf 的名称。未具有相匹配名称的复制体将被拒绝。
+
+除了构造函数之外，BShelf 的处理非常的直观。它能够自动的添加，删除和计算附加到 shelf 的复制体数量。Save() 方法可以让 shelf 拥有一个状态，其可以连续的记录每个程序的运行状态。
+
+## 思路总结
+
+在 Windows Sidebar 和 Google Gadgets 出现以前，BeOS 就已经具有了复制体。和拖动支持，脚本支持一样，它们也是一个非常有趣的，但未被充分利用的技术。考虑一下如何在您的程序中加以使用。很可能，您将会使目标用户的工作更加简化，并且充满乐趣。
+
+这节课也完整的重现了一个特性丰富，完全实现的控件构建。多数开发者并不会这么完整的编写它们的代码。当然，您的代码也无需如此。挑选一些您的程序中需要的功能和特性，如果它们运行的很好，没有人会知道其中的不同，他们也不关心这些。

@@ -15,21 +15,21 @@ Haiku 编程详解
 内容概览
 ------------------------
 
-* `第一课 <详解系列第一课>`_ ：主要讲解模板和标准模板库中一些容器，让刚完成 Haiku 编程学习课程的爱好者对 C++ 中的一些特性有基本的了解。
-* `第二课 <详解系列第二课>`_ ：继续对上一节中的其他的标准模板库内容进行介绍，例如 map, set 等容器以及迭代器等。
-* `第三课 <详解系列第三课>`_ ：主要介绍 C++ 的输入输出，重定向，以及对 C++ 的异常处理的简单介绍。
-* `第四课 <详解系列第四课>`_ ：主要介绍有关源代码管理和控制的理念，相关的工具包括 cvs, svn, git, hg等，并对 hg 的使用进行详细介绍。
-* `第五课 <详解系列第五课>`_ ：通过一个项目实践，读入 ”Paladin 项目文件“，对我们之前研究过的 C++ 的一些特性加深了解。
+* :doc:`/develop/darkwyrm/programing/C01` ：主要讲解模板和标准模板库中一些容器，让刚完成 Haiku 编程学习课程的爱好者对 C++ 中的一些特性有基本的了解。
+* :doc:`/develop/darkwyrm/programing/C02` ：继续对上一节中的其他的标准模板库内容进行介绍，例如 map, set 等容器以及迭代器等。
+* :doc:`/develop/darkwyrm/programing/C03` ：主要介绍 C++ 的输入输出，重定向，以及对 C++ 的异常处理的简单介绍。
+* :doc:`/develop/darkwyrm/programing/C04` ：主要介绍有关源代码管理和控制的理念，相关的工具包括 cvs, svn, git, hg等，并对 hg 的使用进行详细介绍。
+* :doc:`/develop/darkwyrm/programing/C05` ：通过一个项目实践，读入 ”Paladin 项目文件“，对我们之前研究过的 C++ 的一些特性加深了解。
 
-* `第十二课 <详解系列第十二课>`_ ：主要介绍 BeOS/Haiku BeFS 的文件属性及相关的API，并且引入一个小的示例，读取 E-mail 名称属性来进行 API 的使用讲解。
-* `第十三课 <详解系列第十三课>`_ ：主要介绍 BeOS/Haiku 所具有的另一个特性：查询。包括查询的语法和使用示例，以及实时搜索的简单介绍。
-* `第十四课 <详解系列第十四课>`_ ：主要讲解 Haiku 中的存储套件，包括其中很少涉及到的节点管理等。
-* `第十五课 <详解系列第十五课>`_ ：主要介绍 Haiku 中的文件类型，包括文件类型的自定义，MIME 嗅探，以及类型的特别属性。
-* `第十六课 <详解系列第十六课>`_ ：主要介绍 Haiku 中的字体使用，包括文字的排版，字体使用的介绍，以及字体相关的 API 和属性。
-* `第十七课 <详解系列第十七课>`_ ：主要讲解 Haiku 中的控件的使用，包括控件的自定义，并且以 ColorWell 控件示例进行代码使用演示。
-* `第十八课 <详解系列第十八课>`_ ：主要介绍 Haiku 引用程序的脚本化。
-* `第十九课 <详解系列第十九课>`_ ：深入理解 Haiku 引用的脚本化
-* `第二十课 <详解系列第二十课>`_ ：主要介绍 Haiku 的拖拽支持
-* `第二十一课 <详解系列第二十一课>`_ ：介绍 Haiku/BeOS 中的 Replicants 功能。
-* `第二十二课 <详解系列第二十二课>`_ ：引入一个大的项目，QuickEdit 来结束本部分的课程。
+* :doc:`/develop/darkwyrm/programing/C12` ：主要介绍 BeOS/Haiku BeFS 的文件属性及相关的API，并且引入一个小的示例，读取 E-mail 名称属性来进行 API 的使用讲解。
+* :doc:`/develop/darkwyrm/programing/C13` ：主要介绍 BeOS/Haiku 所具有的另一个特性：查询。包括查询的语法和使用示例，以及实时搜索的简单介绍。
+* :doc:`/develop/darkwyrm/programing/C14` ：主要讲解 Haiku 中的存储套件，包括其中很少涉及到的节点管理等。
+* :doc:`/develop/darkwyrm/programing/C15` ：主要介绍 Haiku 中的文件类型，包括文件类型的自定义，MIME 嗅探，以及类型的特别属性。
+* :doc:`/develop/darkwyrm/programing/C16` ：主要介绍 Haiku 中的字体使用，包括文字的排版，字体使用的介绍，以及字体相关的 API 和属性。
+* :doc:`/develop/darkwyrm/programing/C17` ：主要讲解 Haiku 中的控件的使用，包括控件的自定义，并且以 ColorWell 控件示例进行代码使用演示。
+* :doc:`/develop/darkwyrm/programing/C18` ：主要介绍 Haiku 引用程序的脚本化。
+* :doc:`/develop/darkwyrm/programing/C19` ：深入理解 Haiku 引用的脚本化
+* :doc:`/develop/darkwyrm/programing/C20` ：主要介绍 Haiku 的拖拽支持
+* :doc:`/develop/darkwyrm/programing/C21` ：介绍 Haiku/BeOS 中的 Replicants 功能。
+* :doc:`/develop/darkwyrm/programing/C22` ：引入一个大的项目，QuickEdit 来结束本部分的课程。
 

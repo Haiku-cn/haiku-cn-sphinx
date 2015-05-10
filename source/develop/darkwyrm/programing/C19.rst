@@ -1,0 +1,600 @@
+第十九课
+=======================
+
+在上节课中，我们介绍了 Haiku 的脚本 API，例如如何通过 hey 终端命令进行操作。那么这节课我们将继续深入，了解使用 C++ 构建脚本的机制。
+
+## 详解 Haiku 消息
+
+首先，通过脚本 API 使用 C++ 来操作其他程序的想法乍看之下，毫无头绪，但是我们有理由这么做。其中之一就是它所带来的巨大便利。hey 具有自身的限制，其中最重要的原因是它不具有执行命令的能力，并且需要摒弃一些数据以迎合 bash 命令解析。使用 C++ 来构建脚本需要对 Haiku API 的消息类的了解更为深入，而非流于表面，但是它也通过脚本接口带来了强大的功能。 
+
+多数 GUI 开发并不会过多的涉及到消息处理类，因为 API 都已经非常完备。多数情况下，我们对应于消息，仅仅明确的发送一次。那么让我们快速的浏览一下那些用于脚本的消息处理类。
+
+BHandler 和 BLooper 完成了消息处理的大部分工作。BHandler 对消息作出响应。BLooper 接收消息，并将其传递给附属的 BHandler 列表，直到它们其中之一对消息作出某些动作，因为 BLooper 是 BHandler 的子类，BLooper 也可以对消息作出响应。多数情况下，当发送消息到 BWindow 及其基于 BView 的控件时，才会发生，BWindow 是 BLooper 的子类，而 BView 是 BHandler 的直接子类。
+
+BMessenger 是用以传递这些四处发送的脚本消息的方法。它的对象可能是 BLooper 或者 BHandler，并且提供了一种发送消息到这些对象的方式，而不管对象时在您的程序或者是系统中的其他地方。
+
+## C++ 脚本
+
+使用 C++ 来构建脚本与使用 hey 并无很大区别。虽然需要很多的输入，但其内容基本完全一样：每个 hey 命令都是一个单独的消息，而命令仅仅是 BMessage 的 what 属性，而其他的则是供 BMessage 对应方法所处理的说明符。
+
+我们从转译一个hey命令开始，相比于 C++，它提供了对用户更加友好的接口。如下：
+
+	hey StyledEdit get Title of Window 1
+
+该命令要求 StyledEdit 提供它的首个文档窗口的标题。需要使用的数据有三个部分：目标对象，脚本动作，以及说明符列表。发送消息的代码如下：
+```C++
+	#include <Message.h>
+	#include <Messenger.h>
+	#include <String.h>
+
+	#include <stdio.h>
+
+	int
+	main(void)
+	{
+		status_t status;
+		// 将 messenger 指向 StyledEdit 应用。如果StyledEdit未运行，
+		// status 参数用以获取错误条件。
+		BMessenger messenger("application/x-vnd.Haiku-StyledEdit", -1, &status);
+
+		if (status == B_OK)
+		{
+			// 设置命令
+			BMessage msg(B_GET_PROPERTY), reply;
+
+			// 设置说明符。需要注意的是，和hey命令相似，
+			// 它们按照从最常用至最少用的次序排列。
+			msg.AddSpecifier("Title");
+			msg.AddSpecifier("Window", 1L);
+			if (messenger.SendMessage(&msg, &reply) == B_OK)
+			{
+				// 任何时候脚本消息返回的错误都是
+				// 常量 B_MESSAGE_NOT_UNDERSTOOD。
+				BString title;
+				if (reply.FindString("result", &title) == B_OK)
+					printf("Title of StyledEdit Window 1: %s \n", title.String());
+				else
+					printf("Couldn't get title of StyledEdit Window" "1 \n");
+			}
+		}
+		else
+			printf("StyledEdit does not appear to be running. \n");
+
+		return 0;
+	}
+```
+如你所见，即便会多些输入，但是通过 C++ 来发送命令并不是太过困难。而理解 Haiku 的脚本原理和实现方式则是最困难的部分。其中也涉及到了从目标对象获取 suite，但它并不困难。下述的代码用于从 StyledEdit 的首个窗口中获取处理的 suite，并将其歇息，然后以简短，并且接近英语的格式打印。请看代码：
+```C++
+	#include <Message.h>
+	#include <Messenger.h>
+	#include <PropertyInfo.h>
+	#include <String.h>
+
+	#include <stdio.h>
+
+	int
+	main(void)
+	{
+		// “hey StyledEdit get Suites of Window 1”的C++版本
+		status_t status;
+		BMessenger messenger("application/x-vnd.Haiku-StyledEdit", -1, &status);
+		if (status == B_OK)
+		{
+			BMessage msg(B_GET_PROPERTY), reply;
+			msg.AddSpecifier("Suites");
+			msg.AddSpecifier("Window", 1L);
+			if (messenger.SendMessage(&msg, &reply) == B_OK)
+			{
+				// 我们已经获取到了suite，下面开始进行解析并将其
+				// 以一种比BPropertyInfo.PrintToStream()分离内容更易
+				// 理解的格式打印出来。
+				int32 i = 0;
+				BString suiteName;
+				BPropertyInfo propInfo;
+				while (reply.FindString("suites", i, &suiteName) == B_OK)
+				{
+					printf( "Suite %s:\n", suiteName.String());
+					if (reply.FindFlat(“message”, i, &propInfo) != B_OK)
+					{
+						i++;
+						continue;
+					}
+				
+				
+					int32 propCount = propInfo.CountProperties();
+					const property_info* info = propInfo.Properties();
+					
+					for (int32 j = 0; j < propCount; j++)
+					{
+						BString commands, specifiers;
+						
+						int32 cmdIndex = 0;
+						if (info[j].commands[0] == 0)
+							commands = "Get, Set, Count,"
+									"Create, Delete";
+						else
+							while (info[j].commands[cmdIndex])
+							{
+								BString cmdLabel;
+								switch (info[j].commands[cmdIndex])
+								{
+									case B_COUNT_PRPERTIES:
+									{
+										cmdLabel = "Count";
+										break;
+									}
+									case B_CREATE_PRPERTIES:
+									{
+										cmdLabel = "Create";
+										break;
+									}
+									case B_DELETE_PRPERTIES:
+									{
+										cmdLabel = "Delete";
+										break;
+									}
+									case B_EXECUTE_PRPERTIES:
+									{
+										cmdLabel = "Execute";
+										break;
+									}
+									case B_GET_PRPERTIES:
+									{
+										cmdLabel = "Get";
+										break;
+									}
+									case B_SET_PRPERTIES:
+									{
+										cmdLabel = "Set";
+										break;
+									}
+									default:
+										break;
+								}
+								if (cmdLabel.CountChars())
+								{
+									if (cmdIndex > 0 &&
+										commands.CountChars() > 0)
+										commands << ",";
+									commands << cmdLabel;
+								}
+
+								cmdIndex++;
+							} // 结束 while (commands)
+						if (commands.CountChars() == 0)
+							commands = "None";
+						
+						int32 specIndex = 0;
+						if (info[j].specifiers[0] == 0)
+							specifiers = "All";
+						else
+							while (info[j].specifiers[specIndex])
+							{
+								BString label;
+								switch (info[j].specifiers[specIndex])
+								{
+									case B_DIRECT_SPECIFIER:
+									{
+										label = "Direct";
+										break;
+									}
+									case B_NAME_SPECIFIER:
+									{
+										label = "Name";
+										break;
+									}
+									case B_ID_SPECIFIER:
+									{
+										label = "ID";
+										break;
+									}
+									case B_INDEX_SPECIFIER:
+									{
+										label = "Index";
+										break;
+									}
+									case B_REVERSE_INDEX_SPECIFIER:
+									{
+										label = "ReverseIndex";
+										break;
+									}
+									case B_RANGE_SPECIFIER:
+									{
+										label = "Range";
+										break;
+									}
+									case B_REVERSE_RANGE_SPECIFIER:
+									{
+										label = "RverseRange";
+										break;
+									}
+									default:
+									{
+										break;
+									}
+		 
+								}
+
+								if (label.CountChars())
+								{
+									if (specINdex > 0 &&
+											specifiers.CountChars() > 0)
+										specifiers << ",";
+									specifiers << label;
+								}
+
+								specIndex++;
+							}   // 结束 while(specifiers)
+						if (specifiers.CountChars() == 0)
+							specifiers = "None";
+						
+						printf("%s: %s (%s)\n", info[j].name,
+								commands.String(), specifiers.String());
+						
+						if (info[j].usage && strlen(info[j].usage) > 0)
+							printf("\t%s\n", info[j].usage);
+					} //所有属性结束
+
+					printf("\n");
+
+					i++;
+				} //结束每个suite
+			} //结束每个suite名称的while循环
+		} //结束 if status == B_OK
+		else
+			printf("StyledEdit does not appear to be running.\n");
+		
+		return 0;
+	}
+```
+我们已经对代码讨论了很多，但这并没有说明很多问题。这是 Haiku 脚本化最重要的部分。当然，如果你正在看的代码是 Haiku API 中所定义的标准，那么所有这些工作甚至都是不必要的。
+
+## 实现脚本支持
+
+让您的程序对系统默认以外的脚本消息进行反馈将会让您的程序更为强大，并且会让您的程序产生意想不到的效果。根据所期望结果的不同，它们的实现可能需要或多或少的工作。我们将使用 ColorWell 控件为例来展示其应用。
+
+为了实现额外的脚本支持，需要满足两个条件：对象必须是 BHandler 的子类，并且它需要实现 BHandler 的三个关键钩子函数：GetSupportedSuites()，MessageReceived()，以及ResolveSpecifier()。实际的步骤如下：
+
+
+* 创建一个 static property_info 结构体保存您的控件的 suite 的描述
+* 实现 GetSupportedSuites()。
+* 调整您的控件的 MessageReceived() 以测试带有说明符的消息，并且单独进行处理。
+* 编写 ResolveSpecifier()。
+
+property_info 结构数组用于定义控件的脚本接口。结构体的定义如下：
+```C++
+	struct property_info
+	{
+		// 属性名称在结构体中的描述
+		char* name;
+		
+		// 以 0 为结束符的支持命令列表。使用 0 作为首
+		// 个命令以便作为通配符匹配所有命令。
+		uint32 commands[10];
+
+		// 以 0 为结束符的支持说明符列表。使用 0 作为首个
+		// 说明符以便作为通配符匹配所有说明符。
+		uint32 specifiers[10];
+
+		// 描述属性的字符串
+		char* usage;
+
+		// 可供自己使用的额外空间。系统不会对其进行处理。
+		uint32 extra_data;
+	}
+```
+对于我们的 ColorWell 类，我们定义四个属性：IsRound，布尔值，如果为真，则设置类型为圆形，否则则为矩形；还有三个整型属性：Red，Green 和 Blue。这三个属性支持获取和设置 ColorWell 颜色的单个色值。下面是最终的 suite 定义：
+```C++
+	static property_info sColorWellProperties[] =
+	{
+		{   "IsRound", { B_GET_PROPERTY, B_SET_PROPERTY, 0 },
+			{ B_DIRECT_SPECIFIER, 0 },
+			"True if the color well is round, false if rectangular.", 0,
+			{ B_BOOL_TYPE }
+		},
+		{   "Red", { B_GET_PROPERTY, B_SET_PROPERTY, 0},
+			{ B_DIRECT_SPECIFIER, 0 },
+			"The red value for the color well.", 0,
+			{ B_INT32_TYPE }
+		}
+		{   "Green", { B_GET_PROPERTY, B_SET_PROPERTY, 0},
+			{ B_DIRECT_SPECIFIER, 0 },
+			"The green value for the color well.", 0,
+			{ B_INT32_TYPE }
+		}
+		{   "Blue", { B_GET_PROPERTY, B_SET_PROPERTY, 0},
+			{ B_DIRECT_SPECIFIER, 0 },
+			"The blue value for the color well.", 0,
+			{ B_INT32_TYPE }
+		}
+	};
+```
+现在 suite 的定义已经完成了，那么 GetSupportedSuites() 就是小菜一碟。它只需要为给定的消息添加上 suite 的名称，添加静态的属性列表作为 BPropertyInfo 实例，然后返回父类的该函数版本。
+```C++
+	BHandler*
+	ColorWell::ResolveSpecifier(BMessage* msg, int32 index,
+								BMessage* specifier, int32 what,
+								const char* property)
+	{
+		BPropertyInfo propertyInfo(sColorWellProperties);
+		if (propertyInfo.FindMatch(msg, index, specifier, what, property)
+				>= 0 )
+			return this;
+		return BControl::ResolveSpecifier(msg, index, specifier, what,
+											property);
+	}
+```
+不要担心该示例中的 BPropertyInfo 对象。该类所作的处理很少，它只是将 property_info 进行包装以提供方便的功能，其中最有用的就是 Flatten()，Unflatten()，和 FindMatch()。
+
+在脚本接口的属性到您的控件之间的起到桥梁作用的就是 MessageReceived()。幸运的是，这段代码很简洁。
+```C++
+	void
+	ColorWell::MessageReceived(BMessage* msg)
+	{
+		// 我们的ColorWell类不处理特殊的消息，因此如果
+		// 一个消息没有说明符，我们只需要将其传递给父类处理即可。
+		if (!msg->HasSpecifiers())
+			BControl::MessageReceived(msg);
+		
+		// 脚本依赖于回复的消息。
+		BMessage reply(B_REPLY);
+
+		// 这些变量用于保存当前说明符的有关信息。
+		status_t status = B_ERROR;
+		int32 index;
+		BMessage specifier;
+		int32 what;
+		const char* property;
+		
+		if (msg->GetCurrentSpecifier(&index, &specifier, &what, &property)
+				!= B_OK)
+			return BHandler::MessageReceived(msg);
+
+		// FindMatch() 搜索 property_info 数组，查找其中匹配消息
+		// 中说明符的属性。它将会返回匹配到的元素的索引，如果未发现
+		// 则返回 -1。
+		BPropertyInfo propInfo(sColorWellProperties);
+		switch (propInfo.FindMatch(msg, index, &specifier, what, property))
+		{
+			// 下面的case语句是中间代码，它们可以让每个属性
+			// 完成某些操作。例如MessageReceived() case语句，
+			// 它将未识别到的属性传递给父类。
+			case 0:     // IsRound
+			{
+				if (msg->FindBool("data", &isRound) == B_OK)
+				{
+					SetStyle(isRound ? COLORWELL_ROUND_WELL : 
+								COLORWELL_SQUARE_WELL);
+					status = B_OK;
+				}
+				else 
+				if (msg->what == B_GET_PROPERTY)
+				{
+					reply.AddBool("result",
+								Style() == COLORWELL_ROUND_WELL);
+					status = B_OK;
+				}
+				break;
+			}
+			case 1: // Red
+			{
+				if (msg->what == B_SET_PROPERTY)
+				{
+					int32 newValue;
+					if (msg->FindInt32("data", &newValue) == B_OK)
+					{
+						rgb_color color = ValueAsColor();
+						color.red = newValue;
+						SetValue(color);
+						status = B_OK;
+					}
+				}
+				else
+				if (msg->what == B_GET_PROPERTY)
+				{
+					rgb_color color = ValueAsColor();
+					reply.AddInt32("result", color.red);
+					status = B_OK;
+				}
+				break;
+			}
+			case 2: //Green
+			{
+				if (msg->what == B_SET_PROPERTY)
+				{
+					int32 newValue;
+					if (msg->FindInt32("data", &newValue) == B_OK)
+					{
+						rgb_color color = ValueAsColor();
+						color.green = newValue;
+						SetValue(color);
+						status = B_OK;
+					}
+				}
+				else
+				if (msg->what == B_GET_PROPERTY)
+				{
+					rgb_color color = ValueAsColor();
+					reply.AddInt32("result", color.green);
+					status = B_OK;
+				}
+				break;
+			}
+			case 3: // Blue
+			{
+				if (msg->what == B_SET_PROPERTY)
+				{
+					int32 newValue;
+					if (msg->FindInt32("data", &newValue) == B_OK)
+					{
+						rgb_color color = ValueAsColor();
+						color.blue = newValue;
+						SetValue(color);
+						status = B_OK;
+					}
+				}
+				else
+				if (msg->what == B_GET_PROPERTY)
+				{
+					rgb_color color = ValueAsColor();
+					reply.AddInt32("result", color.blue);
+					status = B_OK;
+				}
+				break;
+			}
+			default:
+				return BControl::MessageReceived(msg);
+		}
+		
+		// 如果我们不能够处理其中的某个消息，我们需要
+		// 添加错误条件。我们需要使用strerror来描述错误，
+		// 并且清楚的表明发生的错误。
+		if (status != B_OK)
+		{
+			reply.what = B_MESSAGE_NOT_USDERSTOOD;
+			reply.AddString("message", strerroe(status));
+		}
+
+		// 即便我们成功的处理消息，也要返回错误代码。
+		reply.AddInt32("error", status);
+
+		msg->SendReply(&reply);
+	}
+```
+根据您的控件所使用的类型，ResolveSpecifier() 可以很简短，也可以很长很复杂。该方法的目的就是确定哪个句柄用于接收和回应相应的消息。
+```C++
+	BHandler* ResolveSpecifier(BMessage* msg, int32 index,
+							BMessage* specifier, int32 what,
+							const char* property);
+```
+msg 指针对应于所传递的脚本消息。specifier 包含了 index 索引指向的当前说明符。what 保存了 specifier 消息的 what 字段值，而 property 包含了目标属性的名称。
+
+您的属性还可以使用其他的方法来回应脚本消息，并且实现 ResolveSpecifier() 的代码量直接取决于这些回应方式和操作。属性的第一种方法就是返回一个附属于其他的 BLooper。第二种为属性返回一个附属于与您的控件相同的 BLooper。第三种方法是返回一个由您的控件处理后的值，例如计算结果，或者您的控件方法的调用结果。
+
+### ResolveSpecifier()方法1：远程 Looper 中的处理程序
+
+BApplication 使用该方法解析其 Window 属性。其不属于 Haiku 中 BApplication 的源代码。下面 BApplication 通过索引或者保留索引来处理窗口说明符。
+```C++
+	if (propInfo.FindMatch(message, 0, specifier, what, property, &data) >= 0)
+	{
+		switch (data) 
+		{
+			case kWindowByIndex:
+			{
+				int32 index;
+				err = specifier->FindInt32("index", &index);
+				if (err != B_OK)
+					break;
+				
+				if (what == B_REVERSE_INDEX_SPECIFIER)
+					index = CountWindows().index;
+				
+				BWindow* window = WindowAt(index);
+				if (window != NULL)
+				{
+					message->PopSpecifier();
+					BMessage(window).SendMessage(message);
+				}
+				else
+					err = B_BAD_INDEX;
+				break;
+			}
+		}
+		
+	}
+```
+在 BApplication 版本的该函数末尾是一个返回 NULL 的调用。这里的关键就是 PopSpecifier() 调用和 NULL 返回值。脚本消息将被传递给相应的消息处理函数（messenger），但是说明符将被去掉，以使目标免于再次解析消息，并且由于 BLooper 不再负责解析说明符，也就是目标 Blooper 将从此开始接手，因此函数将返回 NULL。
+
+### ResolveSpecifier()方法2：当前 Looper 中的处理函数
+
+BView 会使用这种方法来解析其 View 属性。如果视图（view）具有子视图，它们显然属于同一个 looper。
+```C++
+	case 4: // View 属性
+	{
+		if (!fFirstChild)
+		{
+			err = B_NAME_NOT_FOUND;
+			replyMsg.AddString("message", "This window doesn't have"
+					"children.");
+			break;
+		}
+		
+		// 根据所使用的方法，获取子视图
+		BView* child = NULL;
+		switch (what)
+		{
+			case B_INDEX_SPECIFIER:
+			{
+				int32 index;
+				err = specifier->FindInt32("index", &index);
+				if (err == B_OK)
+					child = ChildAt(index);
+				break;
+			}
+			case B_REVERSE_INDEX_SPECIFIER:
+			{
+				int32 rindex;
+				err = specifier->FindInt32("index", &rindex);
+				if (err == B_OK)
+					child = ChindAt(CountChildren().rindex);
+				break;
+			}
+			case B_NAME_SPECIFIER:
+			{
+				const char* name;
+				err = specifier->FindString("name", &name);
+				if (err == B_OK)
+					child = FindView(name);
+				break;
+			}
+		}
+
+		// 传递消息给合适的子视图...
+		if (child != NULL)
+		{
+			msg->PopSpecifier();
+			return child;
+		}
+
+		// .. 反之，如果未发现子视图
+		if (err == B_OK)
+			err = B_BAD_INDEX;
+		
+		replyMsg.AddString("message",
+			"Cannot find view at/with specified index/name.");
+		break;
+	}
+```
+尽管这种方法也调用 PopSpecifier() 以避免对相同的说明符进行重复处理，但它返回非 NULL 的值，这是因为目标 BHandler 属于初始化说明符解析的同一个 BLooper。
+
+### ResolveSpecifier()方法3：解析
+
+多数说明符都会被接收它们的目标对象所解析，那么下述的将是最常用的解析说明符的方法。在下述实例中，您的控件将会返回自身。如果它不能够解析所有消息，该控件将会返回其父类版本的 ResolveSpecifier() 处理结果。
+```C++
+	BHandler*
+	ColorWell::ResolveSpecifier(BMessage* msg, int32 index,
+									BMessage* specifier, int32 what,
+									const char* property)
+	{
+		BPropertyInfo propertyInfo(sColorWellProperties);
+		int32 index = propertyInfo.FindMatch(msg, index, specifier, what,
+											property);
+
+		// 如果该属性碰巧是ColorWell的列表中元素之一，将返回ColorWell对象。
+		if (index >= 0)
+			return this;
+
+		// 如果我们到了下面这一步，也就意味着我们并未识别出它，
+		// 因此我们将会返回继承过来版本的结果。
+		return BControl::ResolveSpecifier(msg, index, specifier, what,
+											property);
+	}
+```
+## 思路总结
+
+结束了所有脚本相关的函数，我们基本上完成了一个完整的控件。如前所述，通过 hey 发送消息，就能够远程的改变它的颜色。那还有什么没有涉及到呢？我们将在下一节课中继续。
+
+## 深入了解
+
+* 单独的设定每个颜色需要很多工作量。能否有一种方法可以同时设置这三种颜色？
+* 创建属性，使之利用 HSL（色调，饱和度，亮度）色彩模式来设置颜色。
