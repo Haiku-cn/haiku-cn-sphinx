@@ -11,28 +11,28 @@
 
 下述是常见的构建平台以及它们的支持状态。该列表并不是很完整，并且构建情况可能会随着它们新版本的发布而发生变化。通过下述列表，您能够找到更多构建设置的详细信息。
 
-=================== ==================  ==========  ===============  ===================
-平台                     包管理           支持度       技能要求             备注    
-=================== ==================  ==========  ===============  ===================
-Haiku                   pkgman            是          入门             最容易
-`Arch Linux`_          `pacman`_          是          高级              -
-Beos                   `pkg`_             否           -              曾经支持
-`Centos`_              `rpm/yum`_         是          中等              -
-`Debian Linux`_        `apt`_             是          中等             缺少 mkisofs
-`Elementary OS`_       `apt`_             是          入门             缺少 mkisofs
-`Fedora`_              `rpm/yum`_         是          入门             缺少 mkisofs
-`FreeBSD`_             `packages`_        是          高级             运行良好
-`Gentoo`_              `Portage`_         是          高级              -
-`Linux Mint`_          `apt`_             是          入门             缺少 mkisofs
-Mac OS X               `MacPorts`_        是          中等              -
-`NetBSD`_              `packages`_        是          高级             未测试
-`OpenSUSE`_            `rpm/zypper`_      是          中等             缺少 mkisofs
-`Red Hat`_             `rpm/yum`_         是          中等             缺少 mkisofs
-Solaris              `solaris pkg`_       否           -               -
-`Ubuntu`_              `apt`_             是          入门             缺少 mkisofs
-Windows               `Cygwin`_           否           -               -
-Zeta                   `pkg`_             否           -              曾经支持
-=================== ==================  ==========  ===============  ===================
+=================== =======================  ==========  ===============  ===================
+平台                     包管理                 支持度       技能要求             备注    
+=================== =======================  ==========  ===============  ===================
+Haiku                   pkgman                是          入门             最容易
+`Arch Linux`_          `pacman`_              是          高级              -
+Beos                   `pkg`_                 否           -              曾经支持
+`Centos`_              `rpm/yum`_             是          中等              -
+`Debian Linux`_        `apt`_                 是          中等             缺少 mkisofs
+`Elementary OS`_       `apt`_                 是          入门             缺少 mkisofs
+`Fedora`_              `rpm/yum`_             是          入门             缺少 mkisofs
+`FreeBSD`_             `packages`_            是          高级             运行良好
+`Gentoo`_              `Portage`_             是          高级              -
+`Linux Mint`_          `apt`_                 是          入门             缺少 mkisofs
+Mac OS X               `MacPorts/Homebrew`_   是          中等              -
+`NetBSD`_              `packages`_            是          高级             未测试
+`OpenSUSE`_            `rpm/zypper`_          是          中等             缺少 mkisofs
+`Red Hat`_             `rpm/yum`_             是          中等             缺少 mkisofs
+Solaris              `solaris pkg`_           否           -               -
+`Ubuntu`_              `apt`_                 是          入门             缺少 mkisofs
+Windows               `Cygwin`_               否           -               -
+Zeta                   `pkg`_                 否           -              曾经支持
+=================== =======================  ==========  ===============  ===================
 
 
 下面是一些必要的工具，在下述不同的平台中都有特别的说明。
@@ -331,7 +331,7 @@ Solaris
 .. _Gentoo: https://www.gentoo.org/
 .. _Portage: `Gentoo Linux 发行版`_
 .. _Linux Mint: http://linuxmint.com/
-.. _MacPorts: `OS X`_
+.. _MacPorts/Homebrew: `OS X`_
 .. _NetBSD: https://www.netbsd.org/
 .. _OpenSUSE: https://www.opensuse.org/
 .. _rpm/zypper: `基于 RPM 使用 zypper 的 GNU/Linux 发行版(OpenSUSE, SLES)`_
