@@ -1,12 +1,17 @@
 第十一课
 ======================
 
+.. contents::
+
 这一课将标志着我们所谓的 “C语言入门环节” 的结束，学完这一课之后，我们将开始介绍为什么 C++ 那么的强大，然后，我们就会真正进入 Haiku 系统编程的环节，这一课是关于数据结构的。尽管变量和数组已经很好使了，不过有时候还是有点不够用。让我们开始吧！
 
-## 自定义类型和枚举类型
+自定义类型和枚举类型
+------------------------------------
 
-使用关键字 typedef 是可以在 C\C++ 创建自己的类型的。我们在上一节课里介绍的 fread() 和 fwrite() 函数使用到的 size_t 类型就是这么创建的。以后当我们开始学习 Haiku API 的特殊点时，我们就会一直使用这些自定义类型了，因为内建的类型比如 long, int 的大小取决于你使用的操作系统。其他的类型则是定长的。如同下面我们从 Haiku 的头文件里截取的一部分一样，自定义类型的格式是 `typedef baseType newTypeName`:
-```C++
+使用关键字 typedef 是可以在 C\C++ 创建自己的类型的。我们在上一节课里介绍的 fread() 和 fwrite() 函数使用到的 size_t 类型就是这么创建的。以后当我们开始学习 Haiku API 的特殊点时，我们就会一直使用这些自定义类型了，因为内建的类型比如 long, int 的大小取决于你使用的操作系统。其他的类型则是定长的。如同下面我们从 Haiku 的头文件里截取的一部分一样，自定义类型的格式是  *typedef baseType newTypeName* :
+
+.. code-block:: cpp
+
     // The type of data        The new name for the data
     typedef signed char        __haiku_std_int8;
     typedef unsigned char      __haiku_std_uint8;
@@ -16,11 +21,13 @@
     typedef unsigned int       __haiku_std_uint32;
     typedef signed long long   __haiku_std_int64;
     typedef unsigned long long __haiku_std_uint64;
-```
+
 signed 和 unsigned 关键字对我们来说是新的是因为我们之前从没需要用到它们。有符号类型 signed 可以保存负数，无符号类型 unsigned 就不行。有符号类型的最高比特位被定义成符号位来标识正或负。这个其实就影响到整形变量的取值范围，比如，有符号 char 的取值范围是 -128 到 127，无符号 char 的取值范围则是 0 到 255.
 
 这些自定义类型实际上只是同样数据的另一个名字，所以 _haiku_std_uint32 只是 unsigned int 的另外一个名字。上面代码里面的类型声明是可以运行的，但不是非常友好，这样的写法一般不会用到 -- 它们实际上被用来作为头文件里定义的更友好的类型名的一个中间名。
-```C++
+
+.. code-block:: cpp
+
     typedef __haiku_int8    int8;    // an 8-bit signed integer
     typedef __haiku_uint8   uint8;   // an 8-bit unsigned integer
     typedef __haiku_int16   int16;   // a 16-bit signed integer
@@ -29,13 +36,16 @@ signed 和 unsigned 关键字对我们来说是新的是因为我们之前从没
     typedef __haiku_uint32  uint32;  // a 32-bit unsigned integer
     typedef __haiku_int64   int64;   // a 64-bit signed integer
     typedef __haiku_uint64  uint64;  // a 64-bit unsigned integer
-```
+
 这样看上去就舒服多了吧，从现在开始我们就会一直使用上面这些类型来替换内置的标准类型，这样我们在接触 Haiku API 之前就能习惯它们了。
 
-## 枚举类型
+枚举类型
+------------------------------------
 
 枚举类型是一种被限定在一个特定值集合内的类型。比如你在写一个纸牌游戏，你可以把纸牌的花色定义成枚举类型，这样做比随便使用某个整数来的更有意义，比如你可以写成这样：
-```C++
+
+.. code-block:: cpp
+
     enum card_suit
     {
         SUIT_CLUBS,
@@ -43,13 +53,18 @@ signed 和 unsigned 关键字对我们来说是新的是因为我们之前从没
         SUIT_HEARTS,
         SUIT_SPADES
     };
-```
+
 这样一来我们就可以定义一个取这个列表中的一项为值的变量 cardSuit 了,它的声明和初始化是这样的：
-```C++
-enum card_suit cardSuit = SUIT_HEARTS;
-```
+
+
+.. code-block:: cpp
+
+   enum card_suit cardSuit = SUIT_HEARTS;
+
 声明枚举类型的格式就和下面的代码一样，枚举类型的类型名和其内部项的默认值不是必须给定的：
-```C++
+
+.. code-block:: cpp
+
     enum enumName
     {
         // 在枚举类型里的一个项可以指定一个整数对应它
@@ -63,11 +78,15 @@ enum card_suit cardSuit = SUIT_HEARTS;
         // enumValue4对应的整数值应该是10
         enumValue4
     };
-```
-## 联合类型
+
+
+联合类型
+------------------------------------
 
 联合（union）是以前当内存空间非常紧张时 C 语言的一个遗留产物。除了在一些古老的代码中，现在已经非常少见了。它的定义看上去是一个结构体，但它实际的内存空间只是它内部最大变量所占用的内存空间。对它内部成员的访问和访问结构体的成员是一样的。联合和结构体的一个关键不同在于，如果你改变了联合内一个成员的值，那其他成员的值也会跟着一起改变。联合内部的每个成员其实就是对同一块内存空间里的数据的不同解释而已。恩，是不是有点绕？不过不用太关心它啦。
-```C++
+
+.. code-block:: cpp
+
     union myUnion
     {
         int32 data32;
@@ -76,11 +95,15 @@ enum card_suit cardSuit = SUIT_HEARTS;
      
     myUnion onion;
     onion.data32 = 5000;
-```
-## 结构体
+
+
+结构体
+------------------------------------
 
 结构体(struct)是一组变量。它们可以是任何类型的变量，虽然在实际使用中结构体内成员的个数有一定限制，但理论上其实是没有的。结构体用来把有紧密联系的变量组在一起，它们是如此定义的：
-```C++
+
+.. code-block:: cpp
+
     // 和枚举类型一样，类型名不是必须的。
     // 不能在结构体内部初始化成员。
     struct myStructName
@@ -90,30 +113,40 @@ enum card_suit cardSuit = SUIT_HEARTS;
         float  someFloat;
         bool   aFlagOfSomeKind;
     };
-```
+
 现在我们就有了一个结构体，我们像使用其他数据类型一样的使用它
-```C++
+
+.. code-block:: cpp
+
     myStructName someVar;
     myStructName aSecondVar;
-```
+
 要访问结构体内部的成员，我们使用结构体名加一个“.”再加结构体内部成员的名字就可以了。比如我们想设置 someVar 结构体内的 someInt 的值是5，我们就可以这么写：
-```C++
+
+.. code-block:: cpp
+
     // 把 someVar 内的 someInt 的值设为 5
     someVar.someInt = 5;
-```
+
 如果你想为结构体在堆上申请空间，也不比其他普通数据类型来的麻烦：
-```C++
+
+.. code-block:: cpp
+
     myStructName *ptrStruct 
                      = (myStructName*)malloc(sizeof(myStructName));
-```				 
+				 
 这么做的话，当你想要访问结构体内部的成员的时候是和之前的做法有区别的。我们使用一个箭头来代替之前的"."。箭头就是一个减号加一个大于号 "->"。
-```C++
-ptrStruct->someInt = 5;
-```
+
+.. code-block:: cpp
+
+   ptrStruct->someInt = 5;
+
 最后，结构体的内部还能嵌套结构体，访问它内部的值就是多用几个点或者多有几个箭头的事。
 
 这一课我们已经一口气学了很多东西了。现在让我们来一些可以加升大家理解的代码吧。下面的代码是我们迄今为止看过最长的。所以请慢慢的仔细看，确保在弄明白每一行都在干什么了之后再看下一行。如果需要的时候也可能去复习下前面课程的内容。和一些案例代码相比这个更像真正的 Haiku 代码，其中包括一些我们会在之后课程普遍使用的小花招。不要担心你会不会忘记这些小花招，因为以后我们会越来越多的用到它们。
-```C++
+
+.. code-block:: cpp
+
     #include <stdio.h>
     #include <malloc.h>
     #include <math.h>
@@ -314,12 +347,15 @@ ptrStruct->someInt = 5;
      
         return 0;
     }
-```
-## 路在何方？
+
+
+路在何方？
+------------------------------------
 
 啊，终于搞定了。这个例子使用了很多我们之前花了很多时间讲解的内容，或许把它们整在一起也得花点时间。这次不用找 Bug 啦，只是要回顾下上一节课最后的项目。花点时间想想这一节课的问题回顾和另外两节课的。从下一节课开始我们要进入 C++ 这个非常给力的领域了。
 
-## 第10课项目回顾
+第十课项目回顾
+------------------------------------
 
 上一节课我们给出了一个项目，输入至少一个文件名，把这个文件内容打印出来，在 for 循环内的程序步骤是：
 
@@ -332,7 +368,9 @@ ptrStruct->someInt = 5;
 * 关闭文件流
 
 代码部分如下：
-```C++
+
+.. code-block:: cpp
+
     #include <stdio.h>
     #include <malloc.h>
      
@@ -379,4 +417,4 @@ ptrStruct->someInt = 5;
         }
         return 0;
     }
-```
+
