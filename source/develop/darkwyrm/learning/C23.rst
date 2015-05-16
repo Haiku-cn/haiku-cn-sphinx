@@ -3,7 +3,8 @@
 
 完成一个程序不仅仅是写了代码，然后让其可以运行。我们的 fortune 程序仍然需要一个图标和一些其他的加工处理。
 
-## 调整资源
+调整资源
+------------------------------------
 
 我们接下来的任务是为我们的程序进行加工处理，而此项工作中要做的就是整理程序资源。这些资源保存在分散的文件之中，在程序完成编译之后打包到我们的程序中。那么让我们开始为我们的项目添加资源。
 
@@ -31,7 +32,7 @@
 
 我们还需要为我们的应用程序设置版本号，署名，启动标签。因此，我们将要使用 FileType Tracker 附件。打开您的工程目录，选择源文件，右键点击，然后从 Add-on 子菜单中选择 FileType。
 
-![](./pictures/lesson_23_HaikuFortune.png)
+.. image:: data/lesson_23_HaikuFortune.png
 
 窗体的一些部分是非常明了的，但是我们最好全部浏览一遍，我们从顶部的应用程序署名（signature）开始。署名应该和我们代码中传递给 BApplication 构造函数的字符相同，但是要除去附加上的引号。虽然在您的程序资源中不对它进行设置，不是什么足以令地球震撼的错误，但是如果您添加了署名，则它应该和传送给 BApplication 的署名相匹配。
 
@@ -41,7 +42,8 @@ Supported Types 选框和您的程序明确支持的文件类型相关联。例�
 
 Version Info 选框包含了用于控制我们的应用程序版本号的信息。下拉菜单选框用于设置发布版本的质量，例如，Alpha，Beta，Golden master（称为，候选版本），以及 Final。Short description 应该包含您的程序功能的简要描述。而 Long description 区域则应该包含更多的信息，一句或者多句话，但是不应该包含一个短篇小说。
 
-## 源代码授权
+源代码授权
+------------------------------------
 
 一旦我们设置了程序的资源，我们应该考虑为我们的源代码选择一个授权。所有的源代码都应给被授权。当然，使用何种授权，这完全取决于它的作者的意愿。在发布您的程序之前，您需要考虑它的发行许可。完成这些将会决定您的程序的发展方向和使用周期。在美国，选择授权许可的失败将会导致应用于您的代码的版权条款的限制。如果您居住在美国以外的地方，则应该检查您所处区域的特定官方规定。
 
@@ -55,7 +57,8 @@ Version Info 选框包含了用于控制我们的应用程序版本号的信息�
 * Mozilla Public License (MPL) – As per the GPL, but any changes to MPL-licensed code must also be submitted back to the original project.
 * Public Domain – The author relinquishes all rights to the code. Literally anything can be done with the code, including removing all copyright information and anything else you could think of. Also, once code is released into the public domain, it cannot be taken back. However, nothing would stop you from using it, improving it, and re-licensing your code.
 
-## 打包发布程序
+打包发布程序
+------------------------------------
 
 在结束我们的工作之前，有必要介绍一下如何发布我们的程序。有两种方法可用于发布程序：package 文件或者 zip 压缩档。两种方法都有值得说明的好处和缺点。
 
@@ -63,27 +66,33 @@ Version Info 选框包含了用于控制我们的应用程序版本号的信息�
 
 Zip 压缩档是两者之中最简单和快速的格式。把所有内容打包成它们在应用程序文件中存在的形式，然后运行 Zip-O-Matic Tracker 附件。不幸的是，它把安装应用程序目录和在 Deskbar 中创建符号链接的任务留给了用户。Zip 压缩档推荐用于简单的程序，它们不需要在硬盘的多个位置放置文件。
 
-## 下一步
+下一步
+------------------------------------
 
 从第一课开始，我们讲解的内容覆盖了很多方面的信息。但是，如果您希望走出初学者的困惑，还需要很多东西需要了解和学习。最好的提高方式就是写代码和学习。您现在了解的内容已经给予了您足够的能力为 Haiku 写出许多不同类型的程序，并且将会给予您方法来学习其他的 Haiku API 和 C++ 编程的其他方面内容。下面这些主题，希望您能够认真的对待：
 
-### C++
+C++
+''''''''''''''''''''''''''''''''''''
 
 * Exceptions
 * Templates and the Standard Template Library
 * Multiple Inheritance
 
-### Usability
+Usability
+''''''''''''''''''''''''''''''''''''
 
 * The Design of Everyday Things, Donald Norman
 * The Humane Interface, Jef Raskin
 
-### Good Programming
+Good Programming
+''''''''''''''''''''''''''''''''''''
 
 * Design Patterns: Elements of Reusable Object-Oriented Software, Erich Gamma, Richard Helm, Ralph Johnson, and John Vlissides
 
-### Programming for BeOS / Haiku
+Programming for BeOS / Haiku
+''''''''''''''''''''''''''''''''''''
 
 * Programming the Be Operating System, Dan Parks Sydow. This is out-of-print but is available from O'Reilly's website as a free PDF.
 * The BeOS sample code projects and accompanying articles
 * The Be Book. This is the authoritative manual on the BeOS / Haiku API.
+

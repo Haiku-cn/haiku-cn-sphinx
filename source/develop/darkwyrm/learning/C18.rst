@@ -1,33 +1,45 @@
 第十八课
 ======================
 
+.. contents::
+
 我们已经学了有关菜单和按钮的内容，接下来我们将要开始学习其他可用的窗口控件类型，如下表所示：
 
-![](./pictures/lesson_18_table.gif)
+.. image:: data/lesson_18_table.gif
 
 上面给出了很多不同的类！乍看之下，乱花迷眼，但略加提炼，抑或稍加思考，您会发现她们形貌相仿，并非全异。您可能希望将这张表放在手边，以备不时之需。我们并不会对上述每个类都详细阐述，所略过的类都比较简单，非常易于理解。
 
-## 重访类型转换
+重访类型转换
+------------------------------------
 
 返回第七节，我们了解了类型转换，例如，将变量中的数据转译为其他不同的类型。在 C 语言中进行转换时存在的问题之一就是安全性 - 无论何时进行转换，它总会成功。如果您选择一个错误的类进行转换，它仍然会成功，这显然会造成无法预期的结果。C++ 提供了不同类型的转换。并且推荐使用 C++ 的转换方式，除非您是在编写 C 代码。如下所示：
-```C++
-static_cast<TypeToCastTo *>(pointerToCast);
-```
+
+.. code-block:: cpp
+
+   static_cast<TypeToCastTo *>(pointerToCast);
+
 static 转换用于将一种类型转换为其他类型。它依赖于编译期信息，并且通常用于常用的C转换方法的目的 - 修改指针类型和算术转换。仅当 C++ 语言支持的两种类型之间的转换时，它才会成功。
-```C++
-dynamic_cast<TypeToCastTo *>(pointerToCast);
-```
+
+.. code-block:: cpp
+
+   dynamic_cast<TypeToCastTo *>(pointerToCast);
+
 和 static 转换不同，dynamic 转换将会是 Haiku 编程中最常用的转换类型方式。它们用于安全得导航到一个继承体系。如果继承没有将 “from” 和 “to” 类型链接到一起，那么就会返回 NULL。这样，您就仅可以转换为这些您认为可以转换的指针类型。我们将会在这节的项目中用到它们。
-```C++
-const_cast<TypeToCastTo *>(pointerToCast);
-```
+
+.. code-block:: cpp
+
+   const_cast<TypeToCastTo *>(pointerToCast);
+
 const 转换将会添加或者移除指针的可变度。例如，有一些实例中，函数将会接受一个非 const 参数，但不能够对其进行修改。传递一个常量指针给这些函数将会需要进行 const 转换。
-```C++
-reinterpret_cast<TypeToCastTo *>(pointerToCast>;
-```
+
+.. code-block:: cpp
+
+   reinterpret_cast<TypeToCastTo *>(pointerToCast>;
+
 reinterpret_cast 转换很少使用。它将一个指针从一种类型转换为其他类型，而忽略这两者之间的相关性。基本上所有 reinterpret 转换可以完成的任务都可以由 static 转换来完成，并且其他的转换通常都不可移植，因此这种类型的转换仅用于确实需要的地方，例如转换函数指针类型。
 
-## 项目：使用列表控件
+项目：使用列表控件
+------------------------------------
 
 本项目，称为 ListTitle，将会使用列表控件，即 BListView 类。在 Haiku API 中发现基于列表的控件使用轻量级的条目。BMenu 和BListView 实际上完成了大部分的工作，而 BMenuItem 和 BListItem 则是非常简单的类。以下面的方式设计类将会节约内存。
 
@@ -40,9 +52,12 @@ reinterpret_cast 转换很少使用。它将一个指针从一种类型转换为
 
 您的 App 类文件和 MainWindow.h 文件应该如下所示：
 
+
 App.h
-------------
-```C++
+''''''''''''''''''''''''''''''''''''
+
+.. code-block:: cpp
+
     #ifndef APP_H 
     #define APP_H 
     #include <Application.h> 
@@ -52,10 +67,13 @@ App.h
         App(void); 
     }; 
     #endif
-```
+
+
 App.cpp
-------------
-```C++
+''''''''''''''''''''''''''''''''''''
+
+.. code-block:: cpp
+
     #include "App.h" 
     #include "MainWindow.h" 
     App::App(void) 
@@ -73,10 +91,14 @@ App.cpp
         delete app; 
         return 0; 
     }
-```
+
+
+
 MainWindow.h
--------------
-```C++
+''''''''''''''''''''''''''''''''''''
+
+.. code-block:: cpp
+
     #ifndef MAINWINDOW_H 
     #define MAINWINDOW_H 
     #include <Window.h> 
@@ -90,13 +112,16 @@ MainWindow.h
         BListView *fListView; 
     }; 
     #endif
-```
+
 现在进入正题：设置 MainWindow 的控件并且让它们有所动作。
 打开 MainWindow.cpp，然后做如下修改：
 
+
 MainWindow.cpp
-------------------
-```C++
+''''''''''''''''''''''''''''''''''''
+
+.. code-block:: cpp
+
     #include "MainWindow.h"
     #include <Button.h>
     #include <ListItem.h>
@@ -215,22 +240,25 @@ MainWindow.cpp
     		}
     	}
     }
-```
+
 这个项目和上节中的项目并没有太多不同之处。通过调用 BListView 的 SetSelectionMessage() 方法，我们让标题能够在用于点击列表中的条目时及时进行更新。通常我们使用 BListView 时，并不会使用这个方法。相对使用更加频繁的是：
 
 SetInvocationMessage()，用于在用于双击条目时发送消息。需要注意的是，DeselectAll() 也会引起选中消息的发送，即使并没有选择，因此有必要处理这种情况，当 CurrentSelection() 返回负值时，标明没有选择。
 幸好您已经对 BView 和常用控件如何一起应用到程序中有所感觉。它们大多数都需要使用 BRect 标识其尺寸和位置，const char * 标识控件名称的，两个整型标识其尺寸修改模式和其他的行为标志。许多类也具有标签和当控件修改或调用时发送的消息，有其是那些继承自 BControl 的类。控件创建后，它将通过 AddChile() 函数关联到 BWindow 或 BView。控件发送的消息通常发送到其所关联到的窗口，但是它也可以定位到其他目标，例如其父类 BView 或者全局的 BApplication。
 
-## 需要记住的内容
+需要记住的内容
+------------------------------------
 
-### BControl
+BControl
+''''''''''''''''''''''''''''''''''''
 
 * ResizeToPreferred(void) - 子类调用它调整自己至合适尺寸以显示其标签和内容。
 * SetLabel(const char *label)/const char * Label(void) - 用于获取和设置子类的标签的方法。
 * SetTarget(BHandler *handler, BLooper *looper) - 发送调用小弟到不同的目标，如 BView，BWindow，或者 BApplication。
 * void SetEnabled(bool enabled)/bool IsEnabled(void) - 用于获取和设置控件启用/禁用状态的方法。
 
-### BListView
+BListView
+''''''''''''''''''''''''''''''''''''
 
 * AddItem(BListItem *item) - 添加条目到列表。
 * int32 CountItems(void) - 返回列表中条目的数量。
@@ -240,3 +268,5 @@ SetInvocationMessage()，用于在用于双击条目时发送消息。需要注�
 * void Select(itn32 index, bool extend = false) - 从指定索引中选择条目。如果extend为false，在指定条目选定前，所有其他的条目将会取消选定。
 * void Select(int32 start, int32 end, bool extend = false) - 选中 start 到 end 之间的所有条目。如果 extend 为 false，在指定条目选定前，其他的所有条目取消选定。
 * void DeselectAll(void) - 取消选定列表中的所有条目。
+
+
