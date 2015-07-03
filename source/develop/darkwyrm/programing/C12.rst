@@ -1,119 +1,146 @@
 第十二课
 =======================
 
-## 属性
+.. contents:: 内容
+
+属性
+------------------------------------
 
 Haiku 所使用的 Be 文件系统允许文件拥有扩展属性。这些属性是 *元数据（metadata）* ，即文件相关信息，但并属于文件内容的一部分。尽管许多其他的操作系统在它们的文件系统中实现了这一特性，但是它们并不像 Haiku 这般那么普遍的加以使用。
 
 属性所提供的灵活性可能起初并不那么明显。例如， MP3 文件可以有不同属性，如艺术家，专辑，等等。对于 MP3 文件，则不需要这种特别的标签读取代码过程。Haiku 中的电子邮件存放在单独文件中，因此搜索会比较繁琐，例如，对于一段时间力接收的某个人发送的所有邮件。Person 文件，用于存储联系人信息，它们基本上都是零字节文件，所有相关的信息都存储在属性中。一些联系人管理软件，例如 Mr.Peeps!，扩展了用于联系人文件的属性数量，甚至将它们保存为常规数据。
 
 用于处理属性的主要 C++ 函数是由 BNode 类所提供的方法。
-```C++
-status_t GetAttrInfo(const char *name, attr_info *info) const;
-```
-获取名称为 name 的属性类型和大小，并把它们放到 info 中相应的属性，在开始调用时，必须已经为其分配空间。如果节点没有这个属性，那么将返回 B_ENTRY_NOT_FOUND，如果 BNode 未初始化，将会返回 B_FILE_ERROR。如果成功则返回 B_OK。下述是 attr_info 结构体声明：
-```C++
-typedef struct attr_info
-{
-    uint32   type;
-    off_t    size;
-} attr_info;
 
-ssize_t ReadAttr(const char* name, type_code type, off_t offset,void* buffer, size_t length);
-```
+.. code-block:: cpp
+
+   status_t GetAttrInfo(const char *name, attr_info *info) const;
+
+获取名称为 name 的属性类型和大小，并把它们放到 info 中相应的属性，在开始调用时，必须已经为其分配空间。如果节点没有这个属性，那么将返回 B_ENTRY_NOT_FOUND，如果 BNode 未初始化，将会返回 B_FILE_ERROR。如果成功则返回 B_OK。下述是 attr_info 结构体声明：
+
+.. code-block:: cpp
+
+   typedef struct attr_info
+   {
+       uint32   type;
+       off_t    size;
+   } attr_info;
+
+   ssize_t ReadAttr(const char* name, type_code type, off_t offset,void* buffer, size_t length);
+
 ReadAttr() 从属性 name 中读取数据，并将其拷贝至长度为 length 字节到 buffer 。在这里，并没有使用 offset 。和 Bmessage 标识符常量相似，type 参数可以是任何四字节整型值，但是它通常是 TypeConstants.h 中预定义的常量，例如 B_STRING_TYPE，或者 B_INT32_TYPE。返回值为所读取到的字节数。
-```C++
-ssizet WriteAttr(const char* name, type_code type, off_t offset, void* buffer, size_t length);
-```
+
+.. code-block:: cpp
+
+   ssizet WriteAttr(const char* name, type_code type, off_t offset, void* buffer, size_t length);
+
 WriteAttr() 的运用与 ReadAttr() 基本相同，除了其中的属性将被擦除，并且取而代之的是 buffer 中的数据。备注：<strong>索引属性，无法通过查询进行访问，而且其不会多于255字节</strong>。它们必须为以下几种类型：string，int32，uint32，int64，uint64，float，或者 double。
-```C++
-status_t RemoveAttr(const char* name);
-```
-该方法删除指定的属性，如果成功，则返回B_OK。
-```C++
-status_t RenameAttr(const char* oldname, const char *newname);
-```
+
+.. code-block:: cpp
+   status_t RemoveAttr(const char* name);
+
+该方法删除指定的属性，如果成功，则返回 B_OK。
+
+.. code-block:: cpp
+
+   status_t RenameAttr(const char* oldname, const char *newname);
+
 它更多的是移动而不是重命名。需要注意的是，如果已经存在了一个 newname 属性，该操作就会失败。
-```C++
-status_t ReadAttrString(const char* name, BString *out) const;
-status_t WriteAttrString(const char* name, const Bstring* data);
-```
+
+.. code-block:: cpp
+
+   status_t ReadAttrString(const char* name, BString *out) const;
+   status_t WriteAttrString(const char* name, const Bstring* data);
+
 这些还未有文档说明的函数在您处理字符串属性时非常方便。在读取属性函数中，name 属性中的数据将存放在 out 中，而写入属性函数中，这些数据则写入磁盘。
 
 下面是读取属性代码的一个示例。在这个实例中，我们将要读取 E-mail Name 属性。
-```C++
-#include <fs_attr.h>
-#include <Node.h>
-#include <String.h>
 
-BString
-GetEmailName(const char* path)
-{
-	BString out;
-	BNode node(path);
-	if (node.InitCheck() != B_OK)
-		return out;
+.. code-block:: cpp
 
-	// 以下代码用于保证属性存在，并且其大小合适。
-	attr_info attrInfo;
-	if (node.GetAttrInfo(“META:name”, &attrInfo) != B_OK)
-		return out;
+   #include <fs_attr.h>
+   #include <Node.h>
+   #include <String.h>
 
-	// BString::LockBuffer() 和 UnlockBuffer() 允许我们直接访问
-	// BString 使用的内部字符buffer。LockBuffer() 接受的参数为
-	// 字符buffer 的最大大小。
-	char* nameBuffer = out.LockBuffer(attrInfo.size + 1);
-	node.ReadAttr(“META:name”, attrInfo.type, 0, nameBuffer,
-					attrInfo.size);
-	nameBuffer[attrInfo.size] = ‘\0’;
-	out.UnlockBuffer();
+   BString
+   GetEmailName(const char* path)
+   {
+       BString out;
+       BNode node(path);
+       if (node.InitCheck() != B_OK)
+           return out;
 
-	return out;
-}
-```
+       // 以下代码用于保证属性存在，并且其大小合适。
+       attr_info attrInfo;
+       if (node.GetAttrInfo(“META:name”, &attrInfo) != B_OK)
+           return out;
+
+       // BString::LockBuffer() 和 UnlockBuffer() 允许我们直接访问
+       // BString 使用的内部字符buffer。LockBuffer() 接受的参数为
+       // 字符buffer 的最大大小。
+       char* nameBuffer = out.LockBuffer(attrInfo.size + 1);
+       node.ReadAttr(“META:name”, attrInfo.type, 0, nameBuffer, attrInfo.size);
+       nameBuffer[attrInfo.size] = ‘\0’;
+       out.UnlockBuffer();
+
+       return out;
+   }
+
 对于任意的属性，以上代码都运行的很好。但是，有一些特别的属性，它们属于系统标准，如用于简化我们实时使用，帮助入门开发人员从记忆最常用的属性名称解脱出来而创建的类。它们包括图标和文件类型。它们都以 BNodeInfo 类的形式提供。
 
-## BNodeInfo
-```C++
-status_t GetAppHint(entry_ref* app_ref);
-status_t SetAppHint(const entry_ref app_ref);
-```
+BNodeInfo
+------------------------------------
+
+.. code-block:: cpp
+
+   status_t GetAppHint(entry_ref* app_ref);
+   status_t SetAppHint(const entry_ref app_ref);
+
 系统中的文件提示，其指明了哪个程序可以用于打开特定文件。app_ref 就是该提示，因为它指定的可能并非一个应用，或者一些其它问题会阻止它打开文件。基于以上问题，该信息存储于属性“BEOS:PATH”。但以上两个方法并不常用。
-```C++
-status_t GetIcon(Bbitmap* icon, icon_size size = B_LARGE_ICON);
-status_t SetIcon(const Bbitmap* icon, icon_size size = B_LARGE_ICON);
 
-status_t GetIcon(uint8 **data, size_t* size, type_code* type) const;
-status_t SetIcon(const uint8* data, size_t size);
+.. code-block:: cpp
 
-static status_t GetTrackerIcon(entry_ref* ref, Bbitmap* icon, icon_size which = B_LARGE_ICON);
-```
-前两个方法直接作用于文件属性。“BEOS:M:STD_ICON”保存了 16x16 像素的 256 色图标，而“BEOS:L:STD_ICON”则用于 32x32 像素 256 色图标。这些是所有 BeOS 系统的标准属性。Haiku 引入了一个新的属性 “BEOS:ICON”，用于存储矢量图标。与其他两个图标不同，这一图标的数据保存为 Haiku 矢量图标格式（HVIF）。这两个不使用 BBitmap 类的函数专门用于处理文件的矢量图标。GetTrackerIcon() 获取 Tracker 显示的该文件图标，其可能与 GetIcon() 返回的不是同一图标，这在以后在进行解释。在多数情况下，如果您希望获取文件图标，只需使用 GetTrackerIcon() 即可。
-```C++
-status_t GetPreferredApp(char* signature, app_verb = B_OPEN);
-status_t SetPreferredApp(char* signature, app_verb = B_OPEN);
-```
+   status_t GetIcon(Bbitmap* icon, icon_size size = B_LARGE_ICON);
+   status_t SetIcon(const Bbitmap* icon, icon_size size = B_LARGE_ICON);
+
+   status_t GetIcon(uint8 **data, size_t* size, type_code* type) const;
+   status_t SetIcon(const uint8* data, size_t size);
+
+   static status_t GetTrackerIcon(entry_ref* ref, Bbitmap* icon, icon_size which = B_LARGE_ICON);
+
+前两个方法直接作用于文件属性。“BEOS:M:STD_ICON” 保存了 16x16 像素的 256 色图标，而 “BEOS:L:STD_ICON” 则用于 32x32 像素 256 色图标。这些是所有 BeOS 系统的标准属性。Haiku 引入了一个新的属性 “BEOS:ICON”，用于存储矢量图标。与其他两个图标不同，这一图标的数据保存为 Haiku 矢量图标格式（HVIF）。这两个不使用 BBitmap 类的函数专门用于处理文件的矢量图标。GetTrackerIcon() 获取 Tracker 显示的该文件图标，其可能与 GetIcon() 返回的不是同一图标，这在以后在进行解释。在多数情况下，如果您希望获取文件图标，只需使用 GetTrackerIcon() 即可。
+
+.. code-block:: cpp
+
+   status_t GetPreferredApp(char* signature, app_verb = B_OPEN);
+   status_t SetPreferredApp(char* signature, app_verb = B_OPEN);
+
 这两个方法用于处理文件的首选应用。它们仅用于处理单个文件，通常并不用于文件的类型。这里所使用的属性为“BEOS:PREF_APP”。
-```C++
-status_t GetType(char* type);
-status_t SetType(const char *type);
-```
-设置和获取文件类型。类型通常为 MIME 字符串。需要注意的是，如果属性不存在，可以调用全局函数 update_mime_info()。这两个方法处理的属性为“BEOS:TYPE”。
+
+.. code-block:: cpp
+
+   status_t GetType(char* type);
+   status_t SetType(const char *type);
+
+设置和获取文件类型。类型通常为 MIME 字符串。需要注意的是，如果属性不存在，可以调用全局函数 update_mime_info()。这两个方法处理的属性为 “BEOS:TYPE”。
 
 需要注意的是，有时使用 BNodeInfo 类的方法并没有 BNode 方便，后者直接作用于属性。为何？因为 BFile 是 BNode 的子类，通常很容易复用 BFile 对象，与偶其实使用 ReadAttrString() 和 WriteAttrString() 方法。
 
 
-## 本地思考，全局而动
+本地思考，全局而动
+------------------------------------
 
 对于 Haiku 的高级用户来说，Haiku 可定制的方式之一就是我们刚刚谈到的文件属性处理。全局的设置存储在系统的 MIME 数据库，并且通过 BmimeType 类进行处理。而且，单个文件也可以自行定义来覆盖这些设置。
 
 我们举个例子，例如 .xyz 文件可以由 XYZEdit 打开。该信息可以在 FileTypes 首选项或在程序中查看和修改，但是有一个文件 SpecialFile.xyz 总是希望使用 XYZOtherEdit 打开。这可以通过 Tracker 的 FileType 附加组件进行设置，即修改该文件的 “BEOS:PREF_APP” 属性。在双击 SpecialFile.xyz 时，Tracker 将会在 XYZOtherEdit 中打开文件。而其他所有的 .xyz 文件则在常用编辑器中打开。如果您希望将这一修改应用到所有的 .xyz 文件，则需要使用 BMimeType 类。我们将在后面学习该类。
 
-## 聚焦思维
+聚焦思维
+------------------------------------
 
 文件属性并不只存在于 BFS 文件系统。其他文件系统， 例如 XFS 和 ReiserFS 也具有该特性。而 Haiku 所不同的是，主流的操作系统（Linux，Windows，OSX）并没有倚重这一特性，如果您能够看到它们可以施展应用的广阔范围，这有点可惜。如果您在 Haiku 中闲逛过，您会发现它们在很多不同任务以不同的方式使用。下一课，我们将介绍一个与之相关的强大特性：查询。
 
-## 深入了解
+深入了解
+------------------------------------
 
 * 在终端中使用命令 listattr 和 catattr ，查看这些文件都使用了什么属性：People 文件，应用程序，电子邮件，或者 MP3 文件。
 * 如果您希望为任务清单应用创建一个 Task 文件，对于 Haiku，这些任务细节的存储方式就是使用属性。以电子邮件属性（ “MAIL:subject”，等）中所使用的常用命名方案为指导，对于任务文件信息，您该使用什么样的属性名称和类型？

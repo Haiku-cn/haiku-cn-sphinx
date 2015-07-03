@@ -1,11 +1,15 @@
 第十三课
 =======================
 
-## 查询
+.. contents:: 内容
+
+查询
+------------------------------------
 
 Haiku的原操作系统，BeOS，领先于时代，引入了超前于 windows95 和 MacOS 等那个时代相互竞争的操作系统的先进特性。除了扩展文件属性，它还提供了查询支持。查询是轻量快速的文件搜索，需要借助 Haiku 特别的文件系统：BFS。BeOS 用户曾经使用查询来组织 MP3，联系人，电子邮件，和图片，然而其他的操作系统则需要递归的搜索每个文件来匹配相应的文件名及其他类似内容。Haiku 用户仍然执行所有这些，但是除了高级用户和开发者，通常它并没有得到充分的应用。甚至现在，使用同样的动力，在不触及操作系统其他部分的前提下，许多有名的操作系统并不能够快速和简单的搜索文件。
 
-## 查询语法
+查询语法
+------------------------------------
 
 查询通常通过 Tracker 的 Find 窗口来运行。它们通常使用 by name 和 by attribute 模式。资深的 Haiku 用户喜欢使用 by formula（使用表达式）设置，它使用文件系统查询的实际语法而不拘泥细节。幸运的是，查询的语法相对简单，而且通过在其他模式中输入测试查询可以快速的进行学习，然后在使用表达式模式。
 
@@ -18,58 +22,67 @@ Haiku的原操作系统，BeOS，领先于时代，引入了超前于 windows95 
 
 完成所有这些之后，您将会在 Find 窗口中看到下面的内容：
 
-	((MAIL: status==”[nN] [eE] [wW]”)&&(BEOS:TYPE==”text/x-email”))
+.. code-block::
+
+   ((MAIL: status==”[nN] [eE] [wW]”)&&(BEOS:TYPE==”text/x-email”))
 
 对于那些不熟悉正则表达式的用户，带有中括号的一组字符用于匹配该组的单个字符。例如，`[nN]` 用于匹配字符 N，同时忽略大小写。本次查询将会匹配任何状态属性为 new 的电子邮件，而不会注意大小写的情况。查询是大小写敏感的，但是任何以名字或者属性模式创建的查询会进行转换，所以它们不是大小写敏感的。
 
 查询可以非常的复杂，但是它们不是必须那样的。一个比较简单的查询也可以完成上述的任务：
 
-	MAIL:status==”[nN]ew”
+.. code-block::
+
+   MAIL:status==”[nN]ew”
 
 由于 e-mail 文件仅仅具有 MAIL:status 属性，因此只进行属性的搜索可能会更好。
 
 如果一个关于某个属性的查询被执行，那么它必须被索引。终端命令 lsindex、rmindex、和 mkindex 用于操作和列出那些被索引的属性。需要注意的是，当使用 mkindex 命令将一个属性添加到文件系统的索引时，所有具有该属性的文件不会被查询自动检出。它们必须重新进行索引。这可以通过拷贝文件到其他地方，然后在将其拷贝回去，或者使用 reindex 终端命令来完成。对于这个小技巧，提醒一句：不要害怕添加一个属性到索引。但是也不要随意的添加。添加太多的属性将会减慢所有基于查询的搜索的性能。
 
-## 使用BQuery
+使用BQuery
+------------------------------------
 
 使用 BQuery 来执行查询可以有两种方法。如果您了解确切的查询语法，那么简单的方法将会非常容易。另一种较为复杂的方法可能更加灵活，但是在多数情况下不是必须的。首先，我们来学习较简单的方法。下面是在引导分区执行查询的一些非常基本的代码：
-```C++
-#include <Query.h> 
-#include <stdio.h> 
-#include <String.h> 
-#include <VolumeRoster.h> 
-#include <Volume.h> 
 
-int 
-main(void) 
-{ 
-	// Get a BVolume object which represents the boot volume. A BQuery 
-	// object will require one. 
-	BVolumeRoster volRoster; 
-	BVolume bootVolume; 
-	volRoster.GetBootVolume(&bootVolume); 
+.. code-block:: cpp
 
-	// A quick summary for using BQuery: 
-	// 1) Make the BQuery object. 
-	// 2) Set the target volume with SetVolume(). 
-	// 3) Specify the search terms with SetPredicate(). 
-	// 4) Call Fetch() to start the search 
-	// 5) Iterate over the results list using GetNextEntry(), 
-	//GetNextRef(), or GetNextDirents(),
+   #include <Query.h> 
+   #include <stdio.h> 
+   #include <String.h> 
+   #include <VolumeRoster.h> 
+   #include <Volume.h> 
 
-	BString predicate("MAIL:subject == *"); 
-	BQuery query; 
-	query.SetVolume(&bootVolume); 
-	query.SetPredicate(predicate.String()); 
-	If (query.Fetch() == B_OK) 
-	{ 
-		printf("Results of query \"%s\":\n", predicate.String()); 
-		entry_ref ref; 
-		while (query.GetNextRef(&ref) == B_OK) 
-			printf("\t%s\n",ref.name); 
-	} 
-}
-```
+   int 
+   main(void) 
+   { 
+       // Get a BVolume object which represents the boot volume. A BQuery 
+       // object will require one. 
+       BVolumeRoster volRoster; 
+       BVolume bootVolume; 
+       volRoster.GetBootVolume(&bootVolume); 
+
+       // A quick summary for using BQuery: 
+       // 1) Make the BQuery object. 
+       // 2) Set the target volume with SetVolume(). 
+       // 3) Specify the search terms with SetPredicate(). 
+       // 4) Call Fetch() to start the search 
+       // 5) Iterate over the results list using GetNextEntry(), 
+       //GetNextRef(), or GetNextDirents(),
+
+       BString predicate("MAIL:subject == *"); 
+       BQuery query; 
+       query.SetVolume(&bootVolume); 
+       query.SetPredicate(predicate.String()); 
+       if (query.Fetch() == B_OK) 
+       { 
+           printf("Results of query \"%s\":\n", predicate.String()); 
+           entry_ref ref; 
+           while (query.GetNextRef(&ref) == B_OK) 
+              printf("\t%s\n",ref.name); 
+       } 
+       
+       return 0;
+    }
+
 代码如此简单，您可能会认为查询在第三方应用程序中会被广泛的使用。
 
 由于查询汇编的方式，更加灵活的方法比较复杂。它使用一个记号堆栈——将搜索项的单个组件以特定顺序（Reverse Polish Notation，逆波兰计数法）链接在一起。每个元素都使用方法如 Pushop() 和 PushAttr() 添加到该论断结果。
@@ -77,29 +90,31 @@ main(void)
 逆波兰计数法（RPN）输入系统可以追溯到二十世纪50年代，但是它仍然应用于许多不同领域，尤其是财务和科学计算。它也被称为后缀表示法（Postfix notation），它将数学运算对象组织到一起，然后将操作符放在末尾。例如，我们通常写入的 (5+6)*3 在 RPN 中变成了 5 6 + 3 * 。如果数学操作符支持优先级，圆括号就不需要。对于计算机而言，RPN 非常简单，但是对于一般人而言确实让人头痛，因为自从我们入学伊始，代数输入就已经根深蒂固。幸运的是，查询通常都有一个简单的语法，所以以这种方式来组织查询并不是那么困难。
 
 下面是使用 RPN 来组织查询的方法：
-```C++
-void PushAttr(const char *attrName);
-void PushOp(query_op operator);
-void PushUInt32(uint32 value);
-void PushInt32(int32 value);
-void PushUInt64(uint64 value);
-void PushInt64(int64 value);
-void PushFloat(float value);
-void PushDouble(double value);
-void PushString(const char *string, bool ignoreCase = false);
-```
+
+.. code-block:: cpp
+
+   void PushAttr(const char *attrName);
+   void PushOp(query_op operator);
+   void PushUInt32(uint32 value);
+   void PushInt32(int32 value);
+   void PushUInt64(uint64 value);
+   void PushInt64(int64 value);
+   void PushFloat(float value);
+   void PushDouble(double value);
+   void PushString(const char *string, bool ignoreCase = false);
+
 前两个方法用于添加属性名和比较操作符；其他的则用于添加不同类型的值。
 
 如下，则是可以和 PushOp() 同时使用的操作符：
 
 <table border="1">
-<tr> <td>操作符</td><td>	操作</td> </tr>
-<tr> <td>B_EQ  </td><td>	==</td> </tr>
-<tr> <td>B_NE  </td><td>	!= </td> </tr>
-<tr> <td>B_GT  </td><td>	> </td> </tr>
-<tr> <td>B_LT  </td><td>	&lt; </td> </tr>
-<tr> <td>B_GE  </td><td>	>= </td> </tr>
-<tr> <td>B_LE  </td><td>	&lt;= </td> </tr>
+<tr> <td>操作符</td><td>   操作</td> </tr>
+<tr> <td>B_EQ  </td><td>   ==</td> </tr>
+<tr> <td>B_NE  </td><td>   != </td> </tr>
+<tr> <td>B_GT  </td><td>   > </td> </tr>
+<tr> <td>B_LT  </td><td>   &lt; </td> </tr>
+<tr> <td>B_GE  </td><td>   >= </td> </tr>
+<tr> <td>B_LE  </td><td>   &lt;= </td> </tr>
 <tr> <td>B_CONTAINS  </td><td> 等同于正则表达式 *value* </td> </tr>
 <tr> <td>B_BEGINS_WITH </td><td> 等同于正则表达式 *value </td> </tr>
 <tr> <td>B_ENDS_WITH   </td><td> 等同于正则表达式 value* </td> </tr>
@@ -109,48 +124,52 @@ void PushString(const char *string, bool ignoreCase = false);
 </table>
 
 在下面的代码中，修改先前的查询示例，使用 RPN 结果：
-```C++
-#include <Entry.h> 
-#include <Query.h> 
-#include <stdio.h> 
-#include <String.h> 
-#include <Volume.h> 
-#include <VolumeRoster.h> 
-int 
-main(void) 
-{ 
-	// Get a BVolume object which represents the boot volume. A BQuery 
-	// object will require one. 
-	BVolumeRoster volRoster; 
-	BVolume bootVolume; 
-	volRoster.GetBootVolume(&bootVolume); 
 
-	// A quick summary for using BQuery: 
-	// 1) Make the BQuery object. 
-	// 2) Set the target volume with SetVolume(). 
-	// 3) Specify the search terms with Push*(). 
-	// 4) Call Fetch() to start the search 
-	// 5) Iterate over the results list using GetNextEntry(), 
-	//GetNextRef(), or GetNextDirents(). 
+.. code-block:: cpp
 
-	BString predicate("MAIL:subject == *"); 
-	BQuery query; 
-	query.SetVolume(&bootVolume); 
-	query.PushAttr("MAIL:subject"); 
-	query.PushString("*"); 
-	query.PushOp(B_EQ); 
-	if (query.Fetch() == B_OK) 
-	{ 
-		printf("Results of query \"%s\":\n", predicate.String());
-		entry_ref ref; 
-		while (query.GetNextRef(&ref) == B_OK) 
-			printf("\t%s\n",ref.name); 
-	} 
-}
-```
+   #include <Entry.h> 
+   #include <Query.h> 
+   #include <stdio.h> 
+   #include <String.h> 
+   #include <Volume.h>  
+   #include <VolumeRoster.h> 
+   int 
+   main(void) 
+   { 
+       // Get a BVolume object which represents the boot volume. A BQuery 
+       // object will require one. 
+       BVolumeRoster volRoster; 
+       BVolume bootVolume; 
+       volRoster.GetBootVolume(&bootVolume); 
+
+       // A quick summary for using BQuery: 
+       // 1) Make the BQuery object. 
+       // 2) Set the target volume with SetVolume(). 
+       // 3) Specify the search terms with Push*(). 
+       // 4) Call Fetch() to start the search 
+       // 5) Iterate over the results list using GetNextEntry(), 
+       //GetNextRef(), or GetNextDirents(). 
+
+       BString predicate("MAIL:subject == *"); 
+       BQuery query; 
+       query.SetVolume(&bootVolume); 
+       query.PushAttr("MAIL:subject"); 
+       query.PushString("*"); 
+       query.PushOp(B_EQ); 
+       if (query.Fetch() == B_OK) 
+       { 
+           printf("Results of query \"%s\":\n", predicate.String());
+           entry_ref ref; 
+           while (query.GetNextRef(&ref) == B_OK) 
+               printf("\t%s\n",ref.name); 
+       } 
+       return 0;
+   }
+
 需要注意的是，两种技术不能够混用。任何使用 Push 方法添加到 BQuery 的搜索项将会优先覆盖传递给 SetPredicate() 的任何内容。
 
-## 使用Live Queries实时搜索
+使用实时搜索
+------------------------------------
 
 上述代码示例使用了静态查询——其结果被读取但未改变，可是一次查询也可以实时更新。当某个文件偶然匹配了查询或者完全消失，实时查询将发送更新消息到您的程序。
 
@@ -161,33 +180,35 @@ main(void)
 Opcode B_ENTRY_CREATED：
 
 <table border="1">
-<tr> <td>数据域名 </td><td>	类型  </td><td>	描述</td> </tr>
-<tr> <td>Opcode	  </td><td> Int32 </td><td>	消息的标识符，在这里等价于 B_ENTRY_CREATED</td> </tr>
-<tr> <td>Name	  </td><td> String</td><td>	新入口的名称</td> </tr>
-<tr> <td>Directory </td><td>Int64 </td><td>	入口所处目录的 ino_t 编号</td> </tr>
-<tr> <td>Device	  </td><td> Int32 </td><td>	入口所处硬件的 dev_t 编号</td> </tr>
-<tr> <td>Node	  </td><td> Int64 </td><td>	入口本身的 ino_t 编号。</td> </tr>
+<tr> <td>数据域名 </td><td>   类型  </td><td>   描述</td> </tr>
+<tr> <td>Opcode     </td><td> Int32 </td><td>   消息的标识符，在这里等价于 B_ENTRY_CREATED</td> </tr>
+<tr> <td>Name     </td><td> String</td><td>   新入口的名称</td> </tr>
+<tr> <td>Directory </td><td>Int64 </td><td>   入口所处目录的 ino_t 编号</td> </tr>
+<tr> <td>Device     </td><td> Int32 </td><td>   入口所处硬件的 dev_t 编号</td> </tr>
+<tr> <td>Node     </td><td> Int64 </td><td>   入口本身的 ino_t 编号。</td> </tr>
 </table>
 
 Opcode B_ENTRY_DELECTED：
 
 <table border="1">
-<tr> <td>数据域名 </td><td>   类型   </td><td>	描述</td> </tr>
-<tr> <td>Opcode	  </td><td>   Int32  </td><td>	消息的标识符，在这里等价于 B_ENTRY_DELECTED</td> </tr>
-<tr> <td>Directory</td><td>   Int64  </td><td>	入口先前所处目录的 ino_t 编号</td> </tr>
-<tr> <td>Device	  </td><td>   Int32  </td><td>	入口先前所处硬件的 dev_t 编号</td> </tr>
-<tr> <td>Node	  </td><td>   Int64  </td><td>	删除入口的 ino_t 编号</td> </tr>
+<tr> <td>数据域名 </td><td>   类型   </td><td>   描述</td> </tr>
+<tr> <td>Opcode     </td><td>   Int32  </td><td>   消息的标识符，在这里等价于 B_ENTRY_DELECTED</td> </tr>
+<tr> <td>Directory</td><td>   Int64  </td><td>   入口先前所处目录的 ino_t 编号</td> </tr>
+<tr> <td>Device     </td><td>   Int32  </td><td>   入口先前所处硬件的 dev_t 编号</td> </tr>
+<tr> <td>Node     </td><td>   Int64  </td><td>   删除入口的 ino_t 编号</td> </tr>
 </table>
 
 第一眼，您可能会觉得实时查询可能总是最好的选择。但是它们的使用也有一些缺陷：对于这些确实有用的消息，还需要计入它们额外的开销。从创建消息中获取的所有信息 —— name，node 以及其他内容等需要进行保存，因为对于 B_ENTRY_DELECTED，并没有名称域发送给它。这个关键性的消息使它不能够创建一个 entry_ref，而这恰巧是除了字符之外，最常用的存储文件或者目录位置的方式。
 
 在使用实时查询时，存储由您所使用的 GetNext 方法搜集到的消息，并且以同样的方式来处理 B_ENTRY_CREATED 消息。通过这种方式，如果您接收到了 B_ENTRY_DELECTED 消息，您将能够从给定的消息中查找可能的选项。
 
-## 总结
+总结
+------------------------------------
 
 查询易于使用，非常快速，并且很强大。如果您必须在系统中查找某些文件集，如在联系人管理中所有人的文件，它们提供了一种简单的方式来查找和检索文件。在您从事项目时，需要牢记于心的是——您可能会发现它们超出人们所想的新用法。
  
-## 深入思考
+深入思考
+------------------------------------
 
 * 在终端中运行 lsindex 命令。它们中大多数的自我解释都非常好，但并非所有。那么您可以想到什么方法可以用于它们？
 * 如果您将要编写一个音乐管理器，您将如何使用查询和属性来尽可能的加强程序，两者都进行索引么？
