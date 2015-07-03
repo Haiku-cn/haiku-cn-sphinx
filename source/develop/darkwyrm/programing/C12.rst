@@ -37,6 +37,7 @@ ReadAttr() 从属性 name 中读取数据，并将其拷贝至长度为 length �
 WriteAttr() 的运用与 ReadAttr() 基本相同，除了其中的属性将被擦除，并且取而代之的是 buffer 中的数据。备注：<strong>索引属性，无法通过查询进行访问，而且其不会多于255字节</strong>。它们必须为以下几种类型：string，int32，uint32，int64，uint64，float，或者 double。
 
 .. code-block:: cpp
+
    status_t RemoveAttr(const char* name);
 
 该方法删除指定的属性，如果成功，则返回 B_OK。

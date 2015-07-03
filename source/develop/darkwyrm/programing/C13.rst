@@ -22,17 +22,17 @@ Haiku的原操作系统，BeOS，领先于时代，引入了超前于 windows95 
 
 完成所有这些之后，您将会在 Find 窗口中看到下面的内容：
 
-.. code-block::
+.. code-block:: none
 
-   ((MAIL: status==”[nN] [eE] [wW]”)&&(BEOS:TYPE==”text/x-email”))
+    ((MAIL: status==”[nN] [eE] [wW]”)&&(BEOS:TYPE==”text/x-email”))
 
 对于那些不熟悉正则表达式的用户，带有中括号的一组字符用于匹配该组的单个字符。例如，`[nN]` 用于匹配字符 N，同时忽略大小写。本次查询将会匹配任何状态属性为 new 的电子邮件，而不会注意大小写的情况。查询是大小写敏感的，但是任何以名字或者属性模式创建的查询会进行转换，所以它们不是大小写敏感的。
 
 查询可以非常的复杂，但是它们不是必须那样的。一个比较简单的查询也可以完成上述的任务：
 
-.. code-block::
+.. code-block:: none
 
-   MAIL:status==”[nN]ew”
+    MAIL:status==”[nN]ew”
 
 由于 e-mail 文件仅仅具有 MAIL:status 属性，因此只进行属性的搜索可能会更好。
 
