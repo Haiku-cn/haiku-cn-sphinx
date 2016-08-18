@@ -51,12 +51,12 @@
 开发工具
 '''''''''''''''''''''''
 
-All development tools required to use Haiku as your development environment are now included. Simply download the latest official release or the latest and unstable nightly images, and you should have everything you need.
+如果使用 Haiku 作外开发环境，所有需要的开发工具都已经包含其中。只需要下载和安装最新的官方发行版本，或者每日构建版（不稳定版本），那么你就有了把玩和开发这一系统的所有工具。
 
 其他系统交叉编译
 '''''''''''''''''''''''
 
-While we encourage using Haiku to build Haiku and/or software for Haiku, it is also possible to cross-compile from other operating systems. If you choose to cross-compile from another system, the Pre-Requisite Software for Compiling Haiku guide may be a good reference for each supported development environment.
+我们推荐使用 Haiku 来构建 Haiku 系统以及其上的应用软件，但是也可以使用其他操作系统进行交叉编译。如果选择通过其他系统进行交叉编译，那么 :doc:`/guides/预备软件` 是一个针对各个支持的开发环境很好的参考。
 
 .. _Haiku 用户指南: http://www.haiku-os.org/docs/userguide/zh_CN/contents.html
 .. _Haiku 手册: http://api.haiku-os.org/
