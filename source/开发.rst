@@ -21,9 +21,8 @@
 
    开发入门
 
-   Haiku编程学习
-
-   Haiku编程教程
+   develop/darkwyrm/LearningToProgramWithHaiku
+   develop/darkwyrm/ProgrammingWithHaiku
 
    Haiku指南
 

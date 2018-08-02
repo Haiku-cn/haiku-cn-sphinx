@@ -1,25 +1,9 @@
-Haiku编程学习
-=======================
-
-.. figure:: /_static/darkwyrm/ISBN_978-0-557-53969-7.jpg
-  :figwidth: image
-  :align: right
-  
-  (`lulu.com`_)
-  
-  ISBN: 978-0-557-53969-7
-
-
-Have you ever wanted to learn to program for Haiku (or something else) but never had the money or the chance? Has something else gotten in the way? Even though I still don't have any real motivation to write code, right now I have plenty of motivation for writing about code.
-
--- Darkwyrm
-
 简介
-------------------------
+==============================
 
 Haiku编程学习（Learning to Program with Haiku）由 DarkWyrm 编写，主要目的在于，为 Haiku 爱好者和愿意为 Haiku 开发程序的新手提供一个渐进的学习教程，从简单的编概念的讲解，函数的认识和学习，基本的 GUI 掌握，最后到构建一个完整的程序。您会发现，它虽然讲解的很简单，每一章节都不是很长，但是它给你提供了一个思路，一个从零到构建完整的程序的思路，慢慢的引导您了解整个开发的过程，摆脱入门新手的混沌，渐渐走进编程世界的佳境。
 
-目录
+概述
 ------------------------
 
 本教程分为五个部分，23 个章节。下面将会给出每个部分以及各章节的简单介绍，同时给出相应的链接。由于其中文翻译还未完全完成，对于已经完成的章节，我们会给出相应的中文链接；而对于未完成的部分，我们会提供相应的英语原文下载。
@@ -71,5 +55,3 @@ Haiku编程学习（Learning to Program with Haiku）由 DarkWyrm 编写，主�
 如果您是一个熟悉 unix/linux 的开发者，您可能对下面的内容有所了解，但是下面的资料包涵内容众多，多了解可以加深对编程理念的更深入的体会。如果您是一个开发新手或者是Windows 下的开发者，您可能会发现 Haiku 下的编程非常的有意思，学习下面的资料，熟悉里面介绍的工具将会对您更快的接受 Haiku 的理念，更好的学习本教程非常有用。
 
 * `Bash和脚本 <BeOSBash教程>`_ 
-
-.. _lulu.com: http://www.lulu.com/product/paperback/learning-to-program-with-haiku/11914307
