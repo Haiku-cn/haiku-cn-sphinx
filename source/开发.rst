@@ -1,6 +1,9 @@
 开发
 ======================
 
+* `IRC 频道`_
+* `邮件列表`_
+
 本栏目提供有关 Haiku 项目的各种资料，包括用户手册，开发指南，测试手册等等。我们在这里对所有的资料进行了分类。目前我们的资料主要来源于 Haiku 官方网站，也有一些资料来源于原 Be Inc. 的手册和文档。在此，我们会给出相关的文档的介绍信息。
 
 用户指南
@@ -36,8 +39,8 @@
 * `Haiku 手册`_ (每日构建，进行中)
 * `Haiku 用户界面规范`_ (进行中)
 
-* 遗留资料：`BeBook`_ | `Be 新闻信札`_ | `The Art of BeOS Programming`_ (日语版)
-* 更多开发者共享文档：`分类列表`_ | `全部列表`_
+* **遗留资料：** `BeBook`_ | `Be 新闻信札`_ | `The Art of BeOS Programming`_ (日语版)
+* **更多开发者共享文档：** `分类列表`_ | `全部列表`_
 
 在线资源
 ----------------------
@@ -72,4 +75,6 @@
 .. _里程碑和状态: http://dev.haiku-os.org/roadmap
 .. _源码库浏览: http://cgit.haiku-os.org/
 .. _搜索源码: http://grok.bikemonkey.org/source/
+.. _IRC 频道: https://www.haiku-os.org/community/irc
+.. _邮件列表: https://www.haiku-os.org/community/ml
 
