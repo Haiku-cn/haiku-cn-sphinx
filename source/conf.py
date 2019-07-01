@@ -182,16 +182,31 @@ htmlhelp_basename = 'HaikuChineseDocumentsdoc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
-
+latex_engine = "xelatex"
 latex_elements = {
-# The paper size ('letterpaper' or 'a4paper').
-#'papersize': 'letterpaper',
+    # The paper size ('letterpaper' or 'a4paper').
+    #
+    # 'papersize': 'letterpaper',
+    'papersize' : 'a4paper',
 
-# The font size ('10pt', '11pt' or '12pt').
-#'pointsize': '10pt',
+    # The font size ('10pt', '11pt' or '12pt').
+    #
+    # 'pointsize': '10pt',
+    'pointsize' : '10pt',
 
-# Additional stuff for the LaTeX preamble.
-#'preamble': '',
+    # Additional stuff for the LaTeX preamble.
+    #
+    # 'preamble': '',
+    'preamble' : r'''
+    \usepackage{xeCJK}
+    \setCJKmainfont{Noto Serif SC}
+    \setCJKmonofont{Noto Sans Mono CJK SC}
+    ''',
+
+    # Latex figure (float) alignment
+    #
+    # 'figure_align': 'htbp',
+    'classoptions': ',openany,oneside',
 }
 
 # Grouping the document tree into LaTeX files. List of tuples
