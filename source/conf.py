@@ -48,6 +48,7 @@ master_doc = 'index'
 # General information about the project.
 project = u'Haiku Chinese Documents'
 copyright = u'2015, Haiku Chinese Group'
+author = u'Han Pengfei'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -214,8 +215,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  ('index', 'HaikuChineseDocuments.tex', 'Haiku Chinese Documents Documentation',
-   'Han Pengfei', 'manual'),
+  (master_doc, 'HaikuChineseDocuments.tex', u'Haiku Chinese Documents Documentation',
+   u'Han Pengfei', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
