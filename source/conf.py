@@ -14,6 +14,7 @@
 
 import sys
 import os
+import shlex
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -29,7 +30,7 @@ import os
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.imgmath',
+    'sphinx.ext.mathjax',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -145,7 +146,10 @@ html_last_updated_fmt = '%b %d, %Y'
 #html_use_smartypants = True
 
 # Custom sidebar templates, maps document names to template names.
-#html_sidebars = {}
+html_sidebars = {
+'**': ['globaltoc.html', 'sourcelink.html', 'searchbox.html'],
+   'using/windows': ['windowssidebar.html', 'searchbox.html'],
+}
 
 # Additional templates that should be rendered to pages, maps page names to
 # template names.
@@ -254,8 +258,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'HaikuChineseDocuments', 'Haiku Chinese Documents Documentation',
-   'Han Pengfei', 'HaikuChineseDocuments', 'One line description of project.',
+   (master_doc, 'HaikuChineseDocuments', u'Haiku Chinese Documents Documentation',
+   author, 'HaikuChineseDocuments', 'One line description of project.',
    'Miscellaneous'),
 ]
 
